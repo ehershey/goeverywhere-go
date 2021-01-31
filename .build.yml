@@ -1,0 +1,15 @@
+image: alpine/latest
+packages:
+  - go
+sources:
+    - https://git.sr.ht/~ernie/goeverywhere-go
+tasks:
+    - build: |
+        cd goeverywhere-go
+        go build
+    - vet: |
+        cd goeverywhere-go
+        go vet
+    - test: |
+        cd goeverywhere-go
+        go test
