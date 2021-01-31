@@ -1,0 +1,12 @@
+[Unit]
+Description = Goeverywhere backend
+[Service]
+EnvironmentFile=-/etc/defaults/goe
+PrivateTmp=false
+ExecStart=/usr/local/bin/goe
+User=goe
+Group=goe
+SyslogIdentifier=goe
+Restart=on-failure
+[Install]
+WantedBy=default.target
