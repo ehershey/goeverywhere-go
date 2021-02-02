@@ -1,7 +1,7 @@
 [Unit]
 Description = Goeverywhere backend
 [Service]
-EnvironmentFile=-/etc/defaults/goe
+EnvironmentFile=-/etc/default/goe
 PrivateTmp=false
 ExecStart=/usr/local/bin/goe
 User=goe
