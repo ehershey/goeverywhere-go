@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -150,6 +151,24 @@ func TestGetNodesHandler(t *testing.T) {
 
 	if responsejson["bound_string"] != "((40.58934490420493, -74.00047944472679), (40.591811709253925, -73.99345205645294))" {
 		t.Errorf("Incorrect bound string in response: %s", responsejson["bound_string"])
+	}
+
+	point := (responsejson["points"].([]interface{})[0]).(map[string]interface{})
+
+	log.Println("point: ", point)
+	loc := point["loc"].(map[string]interface{})
+	loc_type := loc["type"]
+	if loc_type != "Point" {
+		t.Errorf("loc type in json is not \"Point\": %s", loc_type)
+	}
+	coordinates := loc["coordinates"].([]interface{})
+	lat := coordinates[0]
+	lon := coordinates[1]
+	if lat != -73.9962469 {
+		t.Errorf("lat in node in json != -73.9962469: %f", lat)
+	}
+	if lon != 40.5908497 {
+		t.Errorf("lon in node in json != 40.5908497: %f", lat)
 	}
 
 }

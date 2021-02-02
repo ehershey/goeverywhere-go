@@ -104,8 +104,8 @@ type GetNodesOptions struct {
 }
 
 type point struct {
-	Type        string
-	Coordinates []float64
+	Type        string    `json:"type"`
+	Coordinates []float64 `json:"coordinates"`
 }
 
 type node struct {
