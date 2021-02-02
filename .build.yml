@@ -1,12 +1,16 @@
 image: fedora/latest
-repositories:
-  mongodb-org-4.4: https://repo.mongodb.org/yum/redhat/8/mongodb-org/4.4/x86_64
 packages:
   - go
-  - mongodb-org
 sources:
     - https://git.sr.ht/~ernie/goeverywhere-go
 tasks:
+    - setup: |
+        sudo dnf install 'dnf-command(config-manager)'
+        sudo dnf --add-repo https://repo.mongodb.org/yum/redhat/8/mongodb-org/4.4/x86_64
+        curl -LO https://www.mongodb.org/static/pgp/server-4.4.asc
+        sudo rpm --import server-4.4.asc
+        sudo dnf install -y mongodb-org
+        sudo systemctl start mongod
     - build: |
         cd goeverywhere-go
         go build
@@ -15,6 +19,5 @@ tasks:
         go vet
     - test: |
         cd goeverywhere-go
-        sudo systemctl start mongod
         ./scripts/setup_empty_db.sh
         go test -v
