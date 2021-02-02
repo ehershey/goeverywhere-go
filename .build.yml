@@ -1,6 +1,7 @@
 image: alpine/latest
 packages:
   - go
+  - mongodb
 sources:
     - https://git.sr.ht/~ernie/goeverywhere-go
 tasks:
