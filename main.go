@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-const autoupdate_version = 22
+const autoupdate_version = 24
 
 var routes []string
 
@@ -37,6 +37,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	log.Println("config:")
+	log.Println("ListenPort: ", config.ListenPort)
+	log.Println("DB_Name: ", config.DB_Name)
+	log.Println("MongoDB_Uri: ", config.MongoDB_Uri)
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(config.ListenPort), r)) // Run Server
 
 }
