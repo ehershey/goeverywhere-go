@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-const autoupdate_version = 21
+const autoupdate_version = 22
 
 var routes []string
 

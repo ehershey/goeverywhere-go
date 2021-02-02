@@ -1,19 +1,4 @@
 /*
-if ignored.lower() == 'true':
-    query['$and'].append({"ignored": True})
-elif ignored.lower() == 'false':
-    query['$and'].append({"ignored": {"$ne": True}})  # Field generally only present when == true
-
-if priority.lower() == 'true':
-    query['$and'].append({"priority": True})
-elif priority.lower() == 'false':
-    query['$and'].append({"priority": {"$ne": True}})  # Field generally only present when == true
-
-if from_lat and from_lon:
-    current_location = {"type": "Point", "coordinates": [float(from_lon), float(from_lat)]}
-    near_query = {"loc": {"$near": current_location}}
-    query['$and'].append(near_query)
-
 if exclude:
     exclude_query = {"external_id": {"$nin": exclude}}
     query['$and'].append(exclude_query)
@@ -62,134 +47,279 @@ package main
 
 import (
 	"context"
+	"crypto/md5"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/gorilla/schema"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"io"
+	"log"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 )
 
-const db_name = "ernie_org"
 const collection_name = "nodes"
-const db_uri = "mongodb://localhost:27017"
 
 const default_limit = 1000
 
 func getCollection() (*mongo.Client, *mongo.Collection, error) {
-	client, err := mongo.NewClient(options.Client().ApplyURI(db_uri))
+
+	config, err := GetConfig()
 	if err != nil {
-		fmt.Println("got an error:", err)
+		log.Fatal(err)
+	}
+
+	client, err := mongo.NewClient(options.Client().ApplyURI(config.MongoDB_Uri))
+	if err != nil {
+		log.Println("got an error:", err)
 		return nil, nil, err
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	err = client.Connect(ctx)
-	collection := client.Database(db_name).Collection(collection_name)
+	collection := client.Database(config.DB_Name).Collection(collection_name)
 	return client, collection, nil
 }
 
 type GetNodesOptions struct {
-	min_lon      float64
-	min_lat      float64
-	max_lon      float64
-	max_lat      float64
-	from_lat     float64
-	from_lon     float64
-	ignored      bool
-	priority     bool
-	limit        int64
-	exclude      string
-	rind         string
-	ts           int64
-	bound_string string
+	MinLon      float64 `schema:"min_lon"`
+	MinLat      float64 `schema:"min_lat"`
+	MaxLon      float64 `schema:"max_lon"`
+	MaxLat      float64 `schema:"max_lat"`
+	FromLat     float64 `schema:"from_lat"`
+	FromLon     float64 `schema:"from_lon"`
+	Ignored     bool
+	Priority    bool
+	Limit       int
+	Exclude     string
+	Ts          string
+	BoundString string `schema:"bound_string"`
+	Rind        string
 }
 
-func GetNodesHandler(http.ResponseWriter, *http.Request) {
-	getNodes(GetNodesOptions{})
+type point struct {
+	Type        string
+	Coordinates []float64
 }
-func getNodes(roptions GetNodesOptions) error {
+
+type node struct {
+	Id           primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
+	CreationDate time.Time          `bson:"creation_date" json:"creation_date"`
+	Loc          point              `bson:"loc" json:"loc"`
+	ExternalId   int                `bson:"external_id,omitempty" json:"external_id"`
+	Priority     bool               `bson:"priority" json:"priority"`
+	Ignored      bool               `bson:"ignored" json:"ignored"`
+}
+
+func (n *node) GetLat() float64 {
+	return n.Loc.Coordinates[0]
+}
+func (n *node) GetLon() float64 {
+	return n.Loc.Coordinates[1]
+}
+
+type getNodesResponse struct {
+	MinLon      float64 `json:"min_lon"`
+	MinLat      float64 `json:"min_lat"`
+	MaxLon      float64 `json:"max_lon"`
+	MaxLat      float64 `json:"max_lat"`
+	Rid         string  `json:"rid"`
+	BoundString string  `json:"bound_string"`
+	Count       int     `json:"count"`
+	Limit       int     `json:"limit"`
+	Setsize     int     `json:"setsize"`
+	Points      []node  `json:"points"`
+}
+
+var decoder = schema.NewDecoder()
+
+func GetNodesHandler(w http.ResponseWriter, r *http.Request) {
+
+	err := r.ParseForm()
+	var querymap map[string][]string
+
+	if r.Method == "GET" {
+		querymap = r.URL.Query()
+	} else {
+		querymap = r.PostForm
+	}
+
+	if err != nil {
+		log.Println("got an error:", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	var roptions GetNodesOptions
+
+	err = decoder.Decode(&roptions, querymap)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	// for excludes:
+	// https://stackoverflow.com/a/37533144/408885
+	// func arrayToString(a []int, delim string) string {
+	// return strings.Trim(strings.Replace(fmt.Sprint(a), " ", delim, -1), "[]")
+	// //return strings.Trim(strings.Join(strings.Split(fmt.Sprint(a), " "), delim), "[]")
+	// //return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(a)), delim), "[]")
+	// }
+	roptions.sanitize()
+	nodes, err := getNodes(roptions)
+	if err != nil {
+		log.Println("got an error:", err)
+		return
+	}
+
+	h := md5.New()
+	io.WriteString(h, fmt.Sprintf("%s%f%f%f%f", roptions.BoundString, roptions.MinLon, roptions.MaxLon, roptions.MinLat, roptions.MaxLat))
+	request_hash := fmt.Sprintf("%x", h.Sum(nil))
+
+	totalcount, err := getTotalCount()
+	if err != nil {
+		log.Println("got an error:", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	response := &getNodesResponse{MinLon: roptions.MinLon, MinLat: roptions.MinLat, MaxLon: roptions.MaxLon, MaxLat: roptions.MaxLat, Rid: request_hash, Points: nodes, BoundString: roptions.BoundString, Count: len(nodes), Limit: roptions.Limit, Setsize: int(totalcount)}
+
+	json.NewEncoder(w).Encode(response)
+
+}
+
+func (roptions *GetNodesOptions) sanitize() {
+	if roptions.Limit == 0 {
+		roptions.Limit = default_limit
+	}
+	if roptions.MinLon == 0 {
+		roptions.MinLon = -80
+	}
+	if roptions.MinLat == 0 {
+		roptions.MinLat = -80
+	}
+	if roptions.MaxLon == 0 {
+		roptions.MaxLon = 80
+	}
+	if roptions.MaxLat == 0 {
+		roptions.MaxLat = 80
+	}
+}
+func getTotalCount() (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	client, collection, err := getCollection()
 	if err != nil {
-		fmt.Println("got an error:", err)
-		return err
+		log.Println("got an error:", err)
+		return 0, err
 	}
 	defer client.Disconnect(ctx)
 
-	limit := roptions.limit
+	return collection.EstimatedDocumentCount(ctx)
+}
 
-	if limit == 0 {
-		limit = default_limit
-	}
+func getNodes(roptions GetNodesOptions) ([]node, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-	min_lon := roptions.min_lon
-	min_lat := roptions.min_lat
-	max_lon := roptions.min_lon
-	max_lat := roptions.max_lat
-	if min_lon == 0 {
-		min_lon = -80
+	client, collection, err := getCollection()
+	if err != nil {
+		log.Println("got an error:", err)
+		return nil, err
 	}
-	if min_lat == 0 {
-		min_lat = -80
+	defer client.Disconnect(ctx)
+
+	if roptions.MinLon > roptions.MaxLon {
+		return nil, errors.New("min_lon must be <= max_lon")
 	}
-	if max_lon == 0 {
-		max_lon = 80
-	}
-	if max_lat == 0 {
-		max_lat = 80
+	if roptions.MinLat > roptions.MaxLat {
+		return nil, errors.New("min_lat must be <= max_lat")
 	}
 
 	var ands []bson.M
 
 	box_query := bson.M{"loc": bson.M{"$geoIntersects": bson.M{"$geometry": bson.M{"type": "Polygon",
-		"coordinates": bson.A{bson.A{bson.A{min_lon,
-			min_lat},
-			bson.A{min_lon,
-				max_lat},
-			bson.A{max_lon,
-				max_lat},
-			bson.A{max_lon,
-				min_lat},
-			bson.A{min_lon,
-				min_lat}}},
+		"coordinates": bson.A{bson.A{bson.A{roptions.MinLon,
+			roptions.MinLat},
+			bson.A{roptions.MinLon,
+				roptions.MaxLat},
+			bson.A{roptions.MaxLon,
+				roptions.MaxLat},
+			bson.A{roptions.MaxLon,
+				roptions.MinLat},
+			bson.A{roptions.MinLon,
+				roptions.MinLat}}},
 	},
 	},
 	},
 	}
 
-	fmt.Println("ands:", ands)
 	ands = append(ands, box_query)
+
+	// Fields generally only present when == true
+	if roptions.Ignored == true {
+		ands = append(ands, bson.M{"ignored": true})
+	} else {
+		ands = append(ands, bson.M{"ignored": bson.M{"$ne": true}})
+	}
+
+	if roptions.Priority == true {
+		ands = append(ands, bson.M{"priority": true})
+	} else {
+		ands = append(ands, bson.M{"priority": bson.M{"$ne": true}})
+	}
+
+	if roptions.FromLat != 0 && roptions.FromLon != 0 {
+		coords := make([]float64, 2)
+		coords[0] = roptions.FromLon
+		coords[1] = roptions.FromLat
+		current_location := point{Type: "Point", Coordinates: coords}
+		near_query := bson.M{"loc": bson.M{"$near": current_location}}
+		ands = append(ands, near_query)
+	}
+
+	if len(roptions.Exclude) > 0 {
+		exclude_array := make([]int64, 0)
+		for _, exclude_id := range strings.Split(roptions.Exclude, "|") {
+			var exclude_id_int int64
+			if exclude_id_int, err = strconv.ParseInt(exclude_id, 10, 64); err != nil {
+				return nil, fmt.Errorf("Error parsing exclude id into int64: %w", err)
+			}
+			exclude_array = append(exclude_array, exclude_id_int)
+		}
+
+		exclude_query := bson.M{"external_id": bson.M{"$nin": exclude_array}}
+		ands = append(ands, exclude_query)
+	}
 
 	// query := bson.E{Key: "$and", Value: ands}
 	query := bson.M{"$and": ands}
 
-	//exclude_query = {"external_id": {"$nin": exclude}}
-	//query['$and'].append(exclude_query)
+	// log.Println("query:", query)
 
-	fmt.Println("ands:", ands)
-	fmt.Println("box_query:", box_query)
-	fmt.Println("query:", query)
 	// query = bson.M{"$and": []bson.M{bson.M{"storyID": 123}, bson.M{"parentID": 432}}}
 	find_opts := options.Find()
-	find_opts.SetLimit(limit)
+	find_opts.SetLimit(int64(roptions.Limit))
+
+	var nodes []node
 
 	cursor, err := collection.Find(ctx, query, find_opts)
 	if err != nil {
-		fmt.Println("got an error:", err)
-		return err
+		log.Println("got an error:", err)
+		return nil, err
 	}
 	defer cursor.Close(ctx)
-	for cursor.Next(ctx) {
-		var node bson.M
-		if err = cursor.Decode(&node); err != nil {
-			fmt.Println("got an error:", err)
-			return err
-		}
-		fmt.Println(node)
+	if err = cursor.All(ctx, &nodes); err != nil {
+		return nil, err
 	}
 
-	return nil
+	return nodes, nil
 }

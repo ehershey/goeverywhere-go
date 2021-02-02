@@ -6,7 +6,8 @@ import (
 
 type Specification struct {
 	ListenPort  int    `default:"1234"`
-	MongoDB_Uri string `default:"localhost:27017"`
+	MongoDB_Uri string `default:"mongodb://localhost:27017"`
+	DB_Name     string `default:"test"`
 }
 
 func GetConfig() (*Specification, error) {
