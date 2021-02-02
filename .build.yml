@@ -1,7 +1,9 @@
 image: fedora/latest
+repositories:
+  mongodb-org-4.4: https://repo.mongodb.org/yum/redhat/8/mongodb-org/4.4/x86_64
 packages:
   - go
-  - mongodb
+  - mongodb-org
 sources:
     - https://git.sr.ht/~ernie/goeverywhere-go
 tasks:
@@ -13,4 +15,6 @@ tasks:
         go vet
     - test: |
         cd goeverywhere-go
-        go test
+        sudo systemctl start mongod
+        ./scripts/setup_empty_db.sh
+        go test -v
