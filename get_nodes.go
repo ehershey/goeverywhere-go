@@ -88,19 +88,19 @@ func getCollection() (*mongo.Client, *mongo.Collection, error) {
 }
 
 type GetNodesOptions struct {
-	MinLon       float64 `schema:"min_lon"`
-	MinLat       float64 `schema:"min_lat"`
-	MaxLon       float64 `schema:"max_lon"`
-	MaxLat       float64 `schema:"max_lat"`
-	FromLat      float64 `schema:"from_lat"`
-	FromLon      float64 `schema:"from_lon"`
-	AllowIgnored bool    `schema:"allow_ignored"`
-	Priority     bool
-	Limit        int
-	Exclude      string
-	Ts           string
-	BoundString  string `schema:"bound_string"`
-	Rind         string
+	MinLon          float64 `schema:"min_lon"`
+	MinLat          float64 `schema:"min_lat"`
+	MaxLon          float64 `schema:"max_lon"`
+	MaxLat          float64 `schema:"max_lat"`
+	FromLat         float64 `schema:"from_lat"`
+	FromLon         float64 `schema:"from_lon"`
+	AllowIgnored    bool    `schema:"allow_ignored"`
+	RequirePriority bool    `schema:"require_priority"`
+	Limit           int
+	Exclude         string
+	Ts              string
+	BoundString     string `schema:"bound_string"`
+	Rind            string
 }
 
 type point struct {
@@ -270,10 +270,8 @@ func getNodes(roptions GetNodesOptions) ([]node, error) {
 		ands = append(ands, bson.M{"ignored": bson.M{"$ne": true}})
 	}
 
-	if roptions.Priority == true {
+	if roptions.RequirePriority == true {
 		ands = append(ands, bson.M{"priority": true})
-	} else {
-		ands = append(ands, bson.M{"priority": bson.M{"$ne": true}})
 	}
 
 	if roptions.FromLat != 0 && roptions.FromLon != 0 {
