@@ -10,17 +10,44 @@ import (
 	"testing"
 )
 
+func TestGetNodesIncludeIgnored(t *testing.T) {
+	roptions := GetNodesOptions{AllowIgnored: true}
+	nodes, err := getNodes(roptions.sanitize())
+	if err != nil {
+		t.Errorf("got an error: %v", err)
+	}
+	seenIgnored := false
+	for _, node := range nodes {
+		if node.Ignored == true {
+			seenIgnored = true
+		}
+	}
+	if !seenIgnored {
+		t.Errorf("No ignored nodes returned when AllowIignored: true in query")
+	}
+
+	roptions.AllowIgnored = false
+	nodes, err = getNodes(roptions)
+	if err != nil {
+		t.Errorf("got an error: %v", err)
+	}
+	for _, node := range nodes {
+		if node.Ignored == true {
+			t.Errorf("Ignored node returned when AllowIgnored == false")
+		}
+	}
+
+}
 func TestGetNodes(t *testing.T) {
 	options := GetNodesOptions{
-		Ignored:  false,
-		Priority: true,
-		Exclude:  "294876208|4245240|294876209|294876210",
-		Limit:    4,
-		FromLat:  40.5900973,
-		FromLon:  -73.997701,
+		AllowIgnored: false,
+		Priority:     true,
+		Exclude:      "294876208|4245240|294876209|294876210",
+		Limit:        4,
+		FromLat:      40.5900973,
+		FromLon:      -73.997701,
 	}
-	options.sanitize()
-	nodes, err := getNodes(options)
+	nodes, err := getNodes(options.sanitize())
 	if err != nil {
 		t.Errorf("got an error: %v", err)
 	}
@@ -99,8 +126,7 @@ func TestGetNodes(t *testing.T) {
 	options.MaxLat = 0
 	options.Limit = 4
 
-	options.sanitize()
-	nodes, err = getNodes(options)
+	nodes, err = getNodes(options.sanitize())
 
 	if err != nil {
 		t.Errorf("got an error: %v", err)
@@ -117,7 +143,7 @@ func TestGetNodes(t *testing.T) {
 }
 
 func TestGetNodesHandler(t *testing.T) {
-	req := httptest.NewRequest("GET", "http://localhost:1234/nodes?ignored=false&priority=true&exclude=294876208|4245240|294876209|294876210&limit=4&from_lat=40.5900973&from_lon=-73.997701&bound_string=%28%2840.58934490420493%2C%20-74.00047944472679%29%2C%20%2840.591811709253925%2C%20-73.99345205645294%29%29&rind=1/1&ts=1612114799249", nil)
+	req := httptest.NewRequest("GET", "http://localhost:1234/nodes?allow_ignored=false&priority=true&exclude=294876208|4245240|294876209|294876210&limit=4&from_lat=40.5900973&from_lon=-73.997701&bound_string=%28%2840.58934490420493%2C%20-74.00047944472679%29%2C%20%2840.591811709253925%2C%20-73.99345205645294%29%29&rind=1/1&ts=1612114799249", nil)
 	w := httptest.NewRecorder()
 	GetNodesHandler(w, req)
 	resp := w.Result()
@@ -175,8 +201,7 @@ func TestGetNodesHandler(t *testing.T) {
 
 func TestGetNodesExclude(t *testing.T) {
 	options := GetNodesOptions{}
-	options.sanitize()
-	nodes, err := getNodes(options)
+	nodes, err := getNodes(options.sanitize())
 	if err != nil {
 		t.Errorf("got an error: %v", err)
 	}

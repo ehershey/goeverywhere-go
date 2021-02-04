@@ -88,19 +88,19 @@ func getCollection() (*mongo.Client, *mongo.Collection, error) {
 }
 
 type GetNodesOptions struct {
-	MinLon      float64 `schema:"min_lon"`
-	MinLat      float64 `schema:"min_lat"`
-	MaxLon      float64 `schema:"max_lon"`
-	MaxLat      float64 `schema:"max_lat"`
-	FromLat     float64 `schema:"from_lat"`
-	FromLon     float64 `schema:"from_lon"`
-	Ignored     bool
-	Priority    bool
-	Limit       int
-	Exclude     string
-	Ts          string
-	BoundString string `schema:"bound_string"`
-	Rind        string
+	MinLon       float64 `schema:"min_lon"`
+	MinLat       float64 `schema:"min_lat"`
+	MaxLon       float64 `schema:"max_lon"`
+	MaxLat       float64 `schema:"max_lat"`
+	FromLat      float64 `schema:"from_lat"`
+	FromLon      float64 `schema:"from_lon"`
+	AllowIgnored bool    `schema:"allow_ignored"`
+	Priority     bool
+	Limit        int
+	Exclude      string
+	Ts           string
+	BoundString  string `schema:"bound_string"`
+	Rind         string
 }
 
 type point struct {
@@ -169,8 +169,7 @@ func GetNodesHandler(w http.ResponseWriter, r *http.Request) {
 	// //return strings.Trim(strings.Join(strings.Split(fmt.Sprint(a), " "), delim), "[]")
 	// //return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(a)), delim), "[]")
 	// }
-	roptions.sanitize()
-	nodes, err := getNodes(roptions)
+	nodes, err := getNodes(roptions.sanitize())
 	if err != nil {
 		log.Println("got an error:", err)
 		return
@@ -195,7 +194,7 @@ func GetNodesHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (roptions *GetNodesOptions) sanitize() {
+func (roptions *GetNodesOptions) sanitize() GetNodesOptions {
 	if roptions.Limit == 0 {
 		roptions.Limit = default_limit
 	}
@@ -211,6 +210,7 @@ func (roptions *GetNodesOptions) sanitize() {
 	if roptions.MaxLat == 0 {
 		roptions.MaxLat = 80
 	}
+	return *roptions
 }
 func getTotalCount() (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -264,10 +264,9 @@ func getNodes(roptions GetNodesOptions) ([]node, error) {
 
 	ands = append(ands, box_query)
 
-	// Fields generally only present when == true
-	if roptions.Ignored == true {
-		ands = append(ands, bson.M{"ignored": true})
-	} else {
+	// Fields generally only present in db when == true
+	// defaults are to return only priority nodes that aren't ignored
+	if roptions.AllowIgnored == false {
 		ands = append(ands, bson.M{"ignored": bson.M{"$ne": true}})
 	}
 
