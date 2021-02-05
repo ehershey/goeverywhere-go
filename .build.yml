@@ -1,4 +1,6 @@
 image: fedora/latest
+packages:
+  - tar
 environment:
   goversion: 1.15.8
   reponame: goeverywhere-go
