@@ -1,7 +1,7 @@
 image: fedora/latest
 environment:
-  - goversion: 1.15.8
-  - reponame: goeverywhere-go
+  goversion: 1.15.8
+  reponame: goeverywhere-go
 sources:
     - https://git.sr.ht/~ernie/goeverywhere-go
 tasks:
