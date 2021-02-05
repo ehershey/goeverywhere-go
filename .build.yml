@@ -21,3 +21,7 @@ tasks:
         cd goeverywhere-go
         ./scripts/setup_empty_db.sh
         go test -v
+triggers:
+  - action: email
+    condition: always
+    to: Ernie Hershey <builds.sr.ht@ernie.org>
