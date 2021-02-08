@@ -1,48 +1,3 @@
-/*
-if exclude:
-    exclude_query = {"external_id": {"$nin": exclude}}
-    query['$and'].append(exclude_query)
-
-debug("query")
-
-count = 0
-
-points = []
-last_included_entry_date = None
-cursor = nodes.find(query).limit(limit)
-for point in cursor:
-    count = count + 1
-    points.append(point)
-response = {
-  'min_lon': min_lon,
-  'min_lat': min_lat,
-  'max_lon': max_lon,
-  'max_lat': max_lat,
-
-  'rid': hashlib.md5(
-      ("%s%s%s%s%s" %
-          (bound_string, min_lon, max_lon, min_lat, max_lat)).encode(encoding='UTF-8',
-                                                                     errors='strict')).hexdigest(),
-  'bound_string': bound_string,
-  'count': count,
-  'limit': limit,
-  'setsize': nodes.estimated_document_count(),
-  'points': points
-}
-
-
-debug("executed")
-response['count'] = count
-
-print("Content-Type: text/plain")
-print("")
-
-
-print(json.dumps(response, default=json_util.default))
-debug("response")
-debug("dumped output")
-debug("ending")
-*/
 package main
 
 import (
@@ -96,6 +51,7 @@ type GetNodesOptions struct {
 	FromLon         float64 `schema:"from_lon"`
 	AllowIgnored    bool    `schema:"allow_ignored"`
 	RequirePriority bool    `schema:"require_priority"`
+	MaxDistance     float64 `schema:"max_distance"`
 	Limit           int
 	Exclude         string
 	Ts              string
@@ -118,10 +74,10 @@ type node struct {
 }
 
 func (n *node) GetLat() float64 {
-	return n.Loc.Coordinates[0]
+	return n.Loc.Coordinates[1]
 }
 func (n *node) GetLon() float64 {
-	return n.Loc.Coordinates[1]
+	return n.Loc.Coordinates[0]
 }
 
 type getNodesResponse struct {
@@ -133,6 +89,7 @@ type getNodesResponse struct {
 	BoundString string  `json:"bound_string"`
 	Count       int     `json:"count"`
 	Limit       int     `json:"limit"`
+	MaxDistance float64 `json:"max_distance"`
 	Setsize     int     `json:"setsize"`
 	Points      []node  `json:"points"`
 }
@@ -188,10 +145,16 @@ func GetNodesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	response := &getNodesResponse{MinLon: roptions.MinLon, MinLat: roptions.MinLat, MaxLon: roptions.MaxLon, MaxLat: roptions.MaxLat, Rid: request_hash, Points: nodes, BoundString: roptions.BoundString, Count: len(nodes), Limit: roptions.Limit, Setsize: int(totalcount)}
+	response := &getNodesResponse{MinLon: roptions.MinLon, MinLat: roptions.MinLat, MaxLon: roptions.MaxLon, MaxLat: roptions.MaxLat, MaxDistance: roptions.MaxDistance, Rid: request_hash, Points: nodes, BoundString: roptions.BoundString, Count: len(nodes), Limit: roptions.Limit, Setsize: int(totalcount)}
 
 	json.NewEncoder(w).Encode(response)
 
+}
+
+func DecodeResponse(jsondata []byte) (error, *getNodesResponse) {
+	var response getNodesResponse
+	json.Unmarshal(jsondata, &response)
+	return nil, &response
 }
 
 func (roptions *GetNodesOptions) sanitize() GetNodesOptions {
@@ -212,6 +175,7 @@ func (roptions *GetNodesOptions) sanitize() GetNodesOptions {
 	}
 	return *roptions
 }
+
 func getTotalCount() (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -279,7 +243,17 @@ func getNodes(roptions GetNodesOptions) ([]node, error) {
 		coords[0] = roptions.FromLon
 		coords[1] = roptions.FromLat
 		current_location := point{Type: "Point", Coordinates: coords}
-		near_query := bson.M{"loc": bson.M{"$near": current_location}}
+		// var loc_doc []bson.M
+		var loc_doc bson.D
+		loc_doc = append(loc_doc, bson.E{Key: "$near", Value: current_location})
+
+		if roptions.MaxDistance > 0 {
+			// near_query["loc"].(map[string]interface{})["$maxDistance"] = roptions.MaxDistance
+			//near_query["loc"].(bson.D)["$maxDistance"] = roptions.MaxDistance
+			loc_doc = append(loc_doc, bson.E{Key: "$maxDistance", Value: roptions.MaxDistance})
+		}
+		near_query := bson.M{"loc": loc_doc}
+
 		ands = append(ands, near_query)
 	}
 
