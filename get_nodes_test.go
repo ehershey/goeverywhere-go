@@ -153,6 +153,88 @@ func TestGetNodes(t *testing.T) {
 
 }
 
+// rid in response is meant to be a hash of request parameters to determine if responses are unique
+// display processes break if it is not actually unique (process_node_response() will abort unnecessarily)
+
+func TestGetNodesHandlerHashing(t *testing.T) {
+	seenHashes := make(map[string]bool)
+
+	max_distance := r.Float64() * 4000
+
+	from_lat := 40.5900973
+	from_lon := -73.997701
+
+	req := httptest.NewRequest("GET", fmt.Sprintf("http://localhost:1234/nodes?allow_ignored=false&require_priority=true&exclude=294876208|4245240|294876209|294876210&limit=1000&max_distance=%f&from_lat=%f&from_lon=%f&bound_string=%%28%%2840.58934490420493%%2C%%20-74.00047944472679%%29%%2C%%20%%2840.591811709253925%%2C%%20-73.99345205645294%%29%%29&rind=1/1&ts=1612114799249", max_distance, from_lat, from_lon), nil)
+	w := httptest.NewRecorder()
+	GetNodesHandler(w, req)
+	resp := w.Result()
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	if resp.StatusCode != 200 {
+		t.Errorf("resp.StatusCode = %d; want 200", resp.StatusCode)
+	}
+
+	if resp.Header.Get("Content-Type") != "application/json" {
+		t.Errorf("resp.Header.Get(\"Content-Type\") = %v; want \"application/json\", body: %.80s", resp.Header.Get("Content-Type"), string(body))
+	}
+	err, response := DecodeResponse(body)
+	if err != nil {
+		t.Errorf("got error: %w", err)
+	}
+
+	seenHashes[response.Rid] = true
+
+	max_distance = r.Float64() * 4000
+
+	req = httptest.NewRequest("GET", fmt.Sprintf("http://localhost:1234/nodes?allow_ignored=false&require_priority=true&exclude=294876208|4245240|294876209|294876210&limit=1000&max_distance=%f&from_lat=%f&from_lon=%f&bound_string=%%28%%2840.58934490420493%%2C%%20-74.00047944472679%%29%%2C%%20%%2840.591811709253925%%2C%%20-73.99345205645294%%29%%29&rind=1/1&ts=1612114799249", max_distance, from_lat, from_lon), nil)
+	w = httptest.NewRecorder()
+	GetNodesHandler(w, req)
+	resp = w.Result()
+	body, _ = ioutil.ReadAll(resp.Body)
+
+	if resp.StatusCode != 200 {
+		t.Errorf("resp.StatusCode = %d; want 200", resp.StatusCode)
+	}
+
+	if resp.Header.Get("Content-Type") != "application/json" {
+		t.Errorf("resp.Header.Get(\"Content-Type\") = %v; want \"application/json\", body: %.80s", resp.Header.Get("Content-Type"), string(body))
+	}
+	err, response = DecodeResponse(body)
+	if err != nil {
+		t.Errorf("got error: %w", err)
+	}
+
+	if seenHashes[response.Rid] {
+		t.Errorf("Saw duplicate rid in response with unique parameters")
+	}
+	seenHashes[response.Rid] = true
+
+	from_lat = r.Float64() * 100
+
+	req = httptest.NewRequest("GET", fmt.Sprintf("http://localhost:1234/nodes?allow_ignored=false&require_priority=true&exclude=294876208|4245240|294876209|294876210&limit=1000&max_distance=%f&from_lat=%f&from_lon=%f&bound_string=%%28%%2840.58934490420493%%2C%%20-74.00047944472679%%29%%2C%%20%%2840.591811709253925%%2C%%20-73.99345205645294%%29%%29&rind=1/1&ts=1612114799249", max_distance, from_lat, from_lon), nil)
+	w = httptest.NewRecorder()
+	GetNodesHandler(w, req)
+	resp = w.Result()
+	body, _ = ioutil.ReadAll(resp.Body)
+
+	if resp.StatusCode != 200 {
+		t.Errorf("resp.StatusCode = %d; want 200", resp.StatusCode)
+	}
+
+	if resp.Header.Get("Content-Type") != "application/json" {
+		t.Errorf("resp.Header.Get(\"Content-Type\") = %v; want \"application/json\", body: %.80s", resp.Header.Get("Content-Type"), string(body))
+	}
+	err, response = DecodeResponse(body)
+	if err != nil {
+		t.Errorf("got error: %w", err)
+	}
+
+	if seenHashes[response.Rid] {
+		t.Errorf("Saw duplicate rid in response with unique parameters")
+	}
+	seenHashes[response.Rid] = true
+
+}
 func TestGetNodesHandlerMaxDistance(t *testing.T) {
 
 	max_distance := r.Float64() * 4000

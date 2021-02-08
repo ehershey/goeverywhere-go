@@ -133,7 +133,7 @@ func GetNodesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h := md5.New()
-	io.WriteString(h, fmt.Sprintf("%s%f%f%f%f", roptions.BoundString, roptions.MinLon, roptions.MaxLon, roptions.MinLat, roptions.MaxLat))
+	io.WriteString(h, fmt.Sprintf("%s%f%f%f%f%f%f%f", roptions.BoundString, roptions.MinLon, roptions.MaxLon, roptions.MinLat, roptions.MaxLat, roptions.FromLat, roptions.FromLon, roptions.MaxDistance))
 	request_hash := fmt.Sprintf("%x", h.Sum(nil))
 
 	totalcount, err := getTotalCount()
