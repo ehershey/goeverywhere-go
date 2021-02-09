@@ -332,6 +332,14 @@ func TestGetNodesHandler(t *testing.T) {
 		t.Errorf("Response JSON doesn't contain 'max_lat' key set to 80: (%f) / %s", responsejson["max_lat"], body[0:80])
 	}
 
+	if responsejson["from_lat"] != 40.5900973 {
+		t.Errorf("Response JSON doesn't contain 'from_lat' key set to 40.5900973: (%f) / %s", responsejson["from_lat"], body[0:80])
+	}
+
+	if responsejson["from_lon"] != -73.997701 {
+		t.Errorf("Response JSON doesn't contain 'from_lon' key set to -73.997701: (%f) / %s", responsejson["from_lon"], body[0:80])
+	}
+
 	if responsejson["bound_string"] != "((40.58934490420493, -74.00047944472679), (40.591811709253925, -73.99345205645294))" {
 		t.Errorf("Incorrect bound string in response: %s", responsejson["bound_string"])
 	}

@@ -85,6 +85,8 @@ type getNodesResponse struct {
 	MinLat      float64 `json:"min_lat"`
 	MaxLon      float64 `json:"max_lon"`
 	MaxLat      float64 `json:"max_lat"`
+	FromLon     float64 `json:"from_lon"`
+	FromLat     float64 `json:"from_lat"`
 	Rid         string  `json:"rid"`
 	BoundString string  `json:"bound_string"`
 	Count       int     `json:"count"`
@@ -145,7 +147,20 @@ func GetNodesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	response := &getNodesResponse{MinLon: roptions.MinLon, MinLat: roptions.MinLat, MaxLon: roptions.MaxLon, MaxLat: roptions.MaxLat, MaxDistance: roptions.MaxDistance, Rid: request_hash, Points: nodes, BoundString: roptions.BoundString, Count: len(nodes), Limit: roptions.Limit, Setsize: int(totalcount)}
+	response := &getNodesResponse{
+		MinLon:      roptions.MinLon,
+		MinLat:      roptions.MinLat,
+		MaxLon:      roptions.MaxLon,
+		MaxLat:      roptions.MaxLat,
+		FromLon:     roptions.FromLon,
+		FromLat:     roptions.FromLat,
+		MaxDistance: roptions.MaxDistance,
+		Rid:         request_hash,
+		Points:      nodes,
+		BoundString: roptions.BoundString,
+		Count:       len(nodes),
+		Limit:       roptions.Limit,
+		Setsize:     int(totalcount)}
 
 	json.NewEncoder(w).Encode(response)
 
