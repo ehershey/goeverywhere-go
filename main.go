@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-const autoupdate_version = 24
+const autoupdate_version = 25
 
 var routes []string
 
@@ -23,6 +23,7 @@ func main() {
 	r.HandleFunc("/points", GetNodesHandler)
 	r.HandleFunc("/bookmarks", GetNodesHandler)
 	r.HandleFunc("/echo", echo)
+	r.HandleFunc("/kv", KeyValueHandler)
 
 	err = r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		pathTemplate, err := route.GetPathTemplate()
