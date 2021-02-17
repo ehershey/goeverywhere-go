@@ -1,0 +1,2 @@
+goe: *.go
+	go build
