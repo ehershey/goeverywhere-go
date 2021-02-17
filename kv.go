@@ -77,7 +77,7 @@ func getKV(roptions KeyValueOptions) (string, error) {
 	defer client.Disconnect(ctx)
 
 	query := bson.M{"k": roptions.K}
-	update := bson.D{{"$set", bson.D{{"v", roptions.V}}}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "v", Value: roptions.V}}}}
 
 	var value string
 
