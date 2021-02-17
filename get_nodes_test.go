@@ -155,6 +155,11 @@ func TestGetNodes(t *testing.T) {
 
 // rid in response is meant to be a hash of request parameters to determine if responses are unique
 // display processes break if it is not actually unique (process_node_response() will abort unnecessarily)
+//
+//
+// intermittent errors?
+// 2021/02/17 16:32:29 got an error: (BadValue) geo near accepts just one argument when querying for a GeoJSON point. Extra field found: $maxDistance: 1160.441063
+// 2021/02/17 16:32:29 got an error: (BadValue) geo near accepts just one argument when querying for a GeoJSON point. Extra field found: $maxDistance: 1160.441063
 
 func TestGetNodesHandlerHashing(t *testing.T) {
 	seenHashes := make(map[string]bool)
