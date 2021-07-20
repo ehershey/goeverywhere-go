@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gorilla/schema"
+	"github.com/mitchellh/go-server-timing"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -98,7 +99,15 @@ type getNodesResponse struct {
 
 var decoder = schema.NewDecoder()
 
+//// Wrap our handler with the server timing middleware
+//var GetNodesHandler = servertiming.Middleware(http.HandlerFunc(GetNodesHandler_raw), nil)
+
+//// without server timing headers
 func GetNodesHandler(w http.ResponseWriter, r *http.Request) {
+
+	timing := servertiming.FromContext(r.Context())
+
+	metric := timing.NewMetric("translate input for query").Start()
 
 	err := r.ParseForm()
 	var querymap map[string][]string
@@ -120,6 +129,7 @@ func GetNodesHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
+	metric.Stop()
 
 	// for excludes:
 	// https://stackoverflow.com/a/37533144/408885

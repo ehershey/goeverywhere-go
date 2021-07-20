@@ -153,6 +153,25 @@ func TestGetNodes(t *testing.T) {
 
 }
 
+// Make sure server timing header is in response
+
+const URL_PATTERN = "http://localhost:1234/nodes?allow_ignored=false&require_priority=true&exclude=294876208|4245240|294876209|294876210&limit=1000&max_distance=%f&from_lat=%f&from_lon=%f&bound_string=%%28%%2840.58934490420493%%2C%%20-74.00047944472679%%29%%2C%%20%%2840.591811709253925%%2C%%20-73.99345205645294%%29%%29&rind=1/1&ts=1612114799249"
+
+func defaultUrl() string {
+	return fmt.Sprintf(URL_PATTERN, 500.0, -73.0, 40.0)
+}
+
+func TestGetNodesHandlerServerTiming(t *testing.T) {
+	req := httptest.NewRequest("GET", defaultUrl(), nil)
+	w := httptest.NewRecorder()
+	GetNodesHandler(w, req)
+	resp := w.Result()
+
+	if len(resp.Header.Get("Server-Timing")) == 0 {
+		t.Errorf("No Server Timing Header in handler response")
+	}
+}
+
 // rid in response is meant to be a hash of request parameters to determine if responses are unique
 // display processes break if it is not actually unique (process_node_response() will abort unnecessarily)
 
