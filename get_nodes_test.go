@@ -34,7 +34,7 @@ func TestGetNodesIncludeIgnored(t *testing.T) {
 		}
 	}
 	if !seenIgnored {
-		t.Errorf("No ignored nodes returned when AllowIignored: true in query")
+		t.Errorf("No ignored nodes returned when AllowIgnored: true in query")
 	}
 
 	roptions.AllowIgnored = false
