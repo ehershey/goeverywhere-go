@@ -279,8 +279,8 @@ func getNodes(roptions GetNodesOptions) ([]node, error) {
 		query["$and"] = ands
 	}
 
-	log.Println("ands:", ands)
-	log.Println("query:", query)
+	// log.Println("ands:", ands)
+	// log.Println("query:", query)
 
 	// query = bson.M{"$and": []bson.M{bson.M{"storyID": 123}, bson.M{"parentID": 432}}}
 	find_opts := options.Find()

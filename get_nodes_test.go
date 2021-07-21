@@ -487,7 +487,7 @@ func TestGetNodesHandlerGeoSort(t *testing.T) {
 	for _, node := range nodes {
 		typedPoint = geo.NewPoint(node.GetLat(), node.GetLon())
 		distance = center.GreatCircleDistance(typedPoint)
-		log.Println("distance:", distance)
+		// log.Println("distance:", distance)
 		if distance < maxDistanceSoFar {
 			t.Errorf("distance in returned node (%f) is less than previously max distance(%f) (node: %v) (typedPoint: %v) (center: %v)", distance, maxDistanceSoFar, node, typedPoint, center)
 		}
