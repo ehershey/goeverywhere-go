@@ -155,14 +155,14 @@ func TestGetNodes(t *testing.T) {
 
 // Make sure server timing header is in response
 
-const URL_PATTERN = "http://localhost:1234/nodes?allow_ignored=false&require_priority=true&exclude=294876208|4245240|294876209|294876210&limit=1000&max_distance=%f&from_lat=%f&from_lon=%f&bound_string=%%28%%2840.58934490420493%%2C%%20-74.00047944472679%%29%%2C%%20%%2840.591811709253925%%2C%%20-73.99345205645294%%29%%29&rind=1/1&ts=1612114799249"
+const URLPattern = "http://localhost:1234/nodes?allow_ignored=false&require_priority=true&exclude=294876208|4245240|294876209|294876210&limit=1000&max_distance=%f&from_lat=%f&from_lon=%f&bound_string=%%28%%2840.58934490420493%%2C%%20-74.00047944472679%%29%%2C%%20%%2840.591811709253925%%2C%%20-73.99345205645294%%29%%29&rind=1/1&ts=1612114799249"
 
-func defaultUrl() string {
-	return fmt.Sprintf(URL_PATTERN, 500.0, -73.0, 40.0)
+func defaultURL() string {
+	return fmt.Sprintf(URLPattern, 500.0, -73.0, 40.0)
 }
 
 func TestGetNodesHandlerServerTiming(t *testing.T) {
-	req := httptest.NewRequest("GET", defaultUrl(), nil)
+	req := httptest.NewRequest("GET", defaultURL(), nil)
 	w := httptest.NewRecorder()
 	GetNodesHandlerWithTiming.ServeHTTP(w, req)
 	resp := w.Result()
@@ -183,12 +183,12 @@ func TestGetNodesHandlerServerTiming(t *testing.T) {
 func TestGetNodesHandlerHashing(t *testing.T) {
 	seenHashes := make(map[string]bool)
 
-	max_distance := r.Float64() * 4000
+	maxDistance := r.Float64() * 4000
 
-	from_lat := 40.5900973
-	from_lon := -73.997701
+	fromLat := 40.5900973
+	fromLon := -73.997701
 
-	req := httptest.NewRequest("GET", fmt.Sprintf("http://localhost:1234/nodes?allow_ignored=false&require_priority=true&exclude=294876208|4245240|294876209|294876210&limit=1000&max_distance=%f&from_lat=%f&from_lon=%f&bound_string=%%28%%2840.58934490420493%%2C%%20-74.00047944472679%%29%%2C%%20%%2840.591811709253925%%2C%%20-73.99345205645294%%29%%29&rind=1/1&ts=1612114799249", max_distance, from_lat, from_lon), nil)
+	req := httptest.NewRequest("GET", fmt.Sprintf("http://localhost:1234/nodes?allow_ignored=false&require_priority=true&exclude=294876208|4245240|294876209|294876210&limit=1000&max_distance=%f&from_lat=%f&from_lon=%f&bound_string=%%28%%2840.58934490420493%%2C%%20-74.00047944472679%%29%%2C%%20%%2840.591811709253925%%2C%%20-73.99345205645294%%29%%29&rind=1/1&ts=1612114799249", maxDistance, fromLat, fromLon), nil)
 	w := httptest.NewRecorder()
 	GetNodesHandler(w, req)
 	resp := w.Result()
@@ -208,9 +208,9 @@ func TestGetNodesHandlerHashing(t *testing.T) {
 
 	seenHashes[response.Rid] = true
 
-	max_distance = r.Float64() * 4000
+	maxDistance = r.Float64() * 4000
 
-	req = httptest.NewRequest("GET", fmt.Sprintf("http://localhost:1234/nodes?allow_ignored=false&require_priority=true&exclude=294876208|4245240|294876209|294876210&limit=1000&max_distance=%f&from_lat=%f&from_lon=%f&bound_string=%%28%%2840.58934490420493%%2C%%20-74.00047944472679%%29%%2C%%20%%2840.591811709253925%%2C%%20-73.99345205645294%%29%%29&rind=1/1&ts=1612114799249", max_distance, from_lat, from_lon), nil)
+	req = httptest.NewRequest("GET", fmt.Sprintf("http://localhost:1234/nodes?allow_ignored=false&require_priority=true&exclude=294876208|4245240|294876209|294876210&limit=1000&max_distance=%f&from_lat=%f&from_lon=%f&bound_string=%%28%%2840.58934490420493%%2C%%20-74.00047944472679%%29%%2C%%20%%2840.591811709253925%%2C%%20-73.99345205645294%%29%%29&rind=1/1&ts=1612114799249", maxDistance, fromLat, fromLon), nil)
 	w = httptest.NewRecorder()
 	GetNodesHandler(w, req)
 	resp = w.Result()
@@ -233,9 +233,9 @@ func TestGetNodesHandlerHashing(t *testing.T) {
 	}
 	seenHashes[response.Rid] = true
 
-	from_lat = r.Float64() * 100
+	fromLat = r.Float64() * 100
 
-	req = httptest.NewRequest("GET", fmt.Sprintf("http://localhost:1234/nodes?allow_ignored=false&require_priority=true&exclude=294876208|4245240|294876209|294876210&limit=1000&max_distance=%f&from_lat=%f&from_lon=%f&bound_string=%%28%%2840.58934490420493%%2C%%20-74.00047944472679%%29%%2C%%20%%2840.591811709253925%%2C%%20-73.99345205645294%%29%%29&rind=1/1&ts=1612114799249", max_distance, from_lat, from_lon), nil)
+	req = httptest.NewRequest("GET", fmt.Sprintf("http://localhost:1234/nodes?allow_ignored=false&require_priority=true&exclude=294876208|4245240|294876209|294876210&limit=1000&max_distance=%f&from_lat=%f&from_lon=%f&bound_string=%%28%%2840.58934490420493%%2C%%20-74.00047944472679%%29%%2C%%20%%2840.591811709253925%%2C%%20-73.99345205645294%%29%%29&rind=1/1&ts=1612114799249", maxDistance, fromLat, fromLon), nil)
 	w = httptest.NewRecorder()
 	GetNodesHandler(w, req)
 	resp = w.Result()
@@ -261,12 +261,12 @@ func TestGetNodesHandlerHashing(t *testing.T) {
 }
 func TestGetNodesHandlerMaxDistance(t *testing.T) {
 
-	max_distance := r.Float64() * 4000
+	maxDistance := r.Float64() * 4000
 
-	from_lat := 40.5900973
-	from_lon := -73.997701
+	fromLat := 40.5900973
+	fromLon := -73.997701
 
-	req := httptest.NewRequest("GET", fmt.Sprintf("http://localhost:1234/nodes?allow_ignored=false&require_priority=true&exclude=294876208|4245240|294876209|294876210&limit=1000&max_distance=%f&from_lat=%f&from_lon=%f&bound_string=%%28%%2840.58934490420493%%2C%%20-74.00047944472679%%29%%2C%%20%%2840.591811709253925%%2C%%20-73.99345205645294%%29%%29&rind=1/1&ts=1612114799249", max_distance, from_lat, from_lon), nil)
+	req := httptest.NewRequest("GET", fmt.Sprintf("http://localhost:1234/nodes?allow_ignored=false&require_priority=true&exclude=294876208|4245240|294876209|294876210&limit=1000&max_distance=%f&from_lat=%f&from_lon=%f&bound_string=%%28%%2840.58934490420493%%2C%%20-74.00047944472679%%29%%2C%%20%%2840.591811709253925%%2C%%20-73.99345205645294%%29%%29&rind=1/1&ts=1612114799249", maxDistance, fromLat, fromLon), nil)
 	w := httptest.NewRecorder()
 	GetNodesHandler(w, req)
 	resp := w.Result()
@@ -286,15 +286,15 @@ func TestGetNodesHandlerMaxDistance(t *testing.T) {
 
 	node := response.Points
 
-	center := geo.NewPoint(from_lat, from_lon)
-	var typed_point *geo.Point
+	center := geo.NewPoint(fromLat, fromLon)
+	var typedPoint *geo.Point
 	var distance float64
 	for _, node := range node {
-		typed_point = geo.NewPoint(node.GetLat(), node.GetLon())
-		distance = center.GreatCircleDistance(typed_point)
+		typedPoint = geo.NewPoint(node.GetLat(), node.GetLon())
+		distance = center.GreatCircleDistance(typedPoint)
 		// log.Println("distance:", distance)
-		if distance > max_distance {
-			t.Errorf("distance in returned node (%f) is greater than max_distance(%f) (node: %v) (typed_point: %v) (center: %v)", distance, max_distance, node, typed_point, center)
+		if distance > maxDistance {
+			t.Errorf("distance in returned node (%f) is greater than max_distance(%f) (node: %v) (typedPoint: %v) (center: %v)", distance, maxDistance, node, typedPoint, center)
 		}
 	}
 }
@@ -318,9 +318,9 @@ func TestGetNodesHandlerLimit(t *testing.T) {
 	var responsejson map[string]interface{}
 	json.Unmarshal([]byte(body), &responsejson)
 
-	returned_count := len(responsejson["points"].([]interface{}))
-	if returned_count != limit {
-		t.Errorf("Response JSON point count is not desired count (%d/%d)", returned_count, limit)
+	returnedCount := len(responsejson["points"].([]interface{}))
+	if returnedCount != limit {
+		t.Errorf("Response JSON point count is not desired count (%d/%d)", returnedCount, limit)
 	}
 }
 func TestGetNodesHandler(t *testing.T) {
@@ -372,9 +372,9 @@ func TestGetNodesHandler(t *testing.T) {
 
 	// log.Println("point: ", point)
 	loc := point["loc"].(map[string]interface{})
-	loc_type := loc["type"]
-	if loc_type != "Point" {
-		t.Errorf("loc type in json is not \"Point\": %s", loc_type)
+	locType := loc["type"]
+	if locType != "Point" {
+		t.Errorf("loc type in json is not \"Point\": %s", locType)
 	}
 	coordinates := loc["coordinates"].([]interface{})
 	lat := coordinates[0]
