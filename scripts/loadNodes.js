@@ -1001,6 +1001,21 @@ nodes = [{"_id":{"$oid":"5fe39391d28eaaaced9757a7"},"creation_date":{"$date":"20
 {"_id": {"$oid": "5fe393aed28eaaaced978aa6"}, "creation_date": {"$date": 1608731998493}, "loc": {"type": "Point", "coordinates": [-73.9210501, 40.6083395]}, "external_id": 4337132, "priority": true},
 {"_id": {"$oid": "5fe393afd28eaaaced978e09"}, "creation_date": {"$date": 1608731999671}, "loc": {"type": "Point", "coordinates": [-73.9209251, 40.6080566]}, "external_id": 5016177, "priority": true},
 {"_id": {"$oid": "5fe393aed28eaaaced978a5a"}, "creation_date": {"$date": 1608731998384}, "loc": {"type": "Point", "coordinates": [-73.9213009, 40.6085649]}, "external_id": 4337025, "priority": true},
-{"_id": {"$oid": "5fe393aed28eaaaced978ab8"}, "creation_date": {"$date": 1608731998523}, "loc": {"type": "Point", "coordinates": [-73.9213009, 40.6085649]}, "external_id": 4337203, "priority": true}];
+{"_id": {"$oid": "5fe393aed28eaaaced978ab8"}, "creation_date": {"$date": 1608731998523}, "loc": {"type": "Point", "coordinates": [-73.9213009, 40.6085649]}, "external_id": 4337203, "priority": true},
+{ "_id": {"$oid": "609c3845f1d5ddd38d0c2a87"}, "creation_date": "2021-05-12T16:19:17.038Z", "loc": { "type": "Point", "coordinates": [ -75.0734623, 40.0878982 ] }, "external_id": 57364122, "priority": true, "ignored": false },
+    { "_id": {"$oid": "609c3845f1d5ddd38d0c2a89"}, "creation_date": "2021-05-12T16:19:17.04Z", "loc": { "type": "Point", "coordinates": [ -75.073304, 40.0879679 ] }, "external_id": 57364123, "priority": true, "ignored": false },
+    { "_id": {"$oid": "609c3845f1d5ddd38d0c2a8b"}, "creation_date": "2021-05-12T16:19:17.042Z", "loc": { "type": "Point", "coordinates": [ -75.07306, 40.0880541 ] }, "external_id": 57364124, "priority": true, "ignored": false },
+    { "_id": {"$oid": "609c3845f1d5ddd38d0c2a8d"}, "creation_date": "2021-05-12T16:19:17.044Z", "loc": { "type": "Point", "coordinates": [ -75.0702795, 40.0896893 ] }, "external_id": 57364127, "priority": true, "ignored": false },
+    { "_id": {"$oid": "60f77e21dc0c3362d6b41ff7"}, "creation_date": "2021-07-20T21:53:37.045Z", "loc": { "type": "Point", "coordinates": [ -85.2466619, 45.1580362 ] }, "external_id": 33495459, "priority": true, "ignored": false },
+    { "_id": {"$oid": "60f77e21dc0c3362d6b41ff9"}, "creation_date": "2021-07-20T21:53:37.048Z", "loc": { "type": "Point", "coordinates": [ -85.2465953, 45.1583237 ] }, "external_id": 33495463, "priority": true, "ignored": false },
+    { "_id": {"$oid": "60f77e21dc0c3362d6b420ab"}, "creation_date": "2021-07-20T21:53:37.21Z", "loc": { "type": "Point", "coordinates": [ -85.2465953, 45.1583237 ] }, "external_id": 33496298, "priority": true, "ignored": false },
+    { "_id": {"$oid": "60ecb8a616d03d14e86aa2ef"}, "creation_date": "2021-07-12T17:48:22.882Z", "loc": { "type": "Point", "coordinates": [ -85.143482, 45.144126 ] }, "external_id": 27878062, "priority": true, "ignored": false },
+    { "_id": {"$oid": "60ecb8a616d03d14e86aa2f1"}, "creation_date": "2021-07-12T17:48:22.885Z", "loc": { "type": "Point", "coordinates": [ -85.143571, 45.144299 ] }, "external_id": 27878063, "priority": true, "ignored": false },
+    { "_id": {"$oid": "60ecb8a616d03d14e86aa2ed"}, "creation_date": "2021-07-12T17:48:22.879Z", "loc": { "type": "Point", "coordinates": [ -85.143327, 45.143992 ] }, "external_id": 27878061, "priority": true, "ignored": false },
+    { "_id": {"$oid": "60ecb8a616d03d14e86aa2eb"}, "creation_date": "2021-07-12T17:48:22.875Z", "loc": { "type": "Point", "coordinates": [ -85.143194, 45.143924 ] }, "external_id": 27878060, "priority": true, "ignored": false },
+    { "_id": {"$oid": "60ecb8a616d03d14e86aa1df"}, "creation_date": "2021-07-12T17:48:22.519Z", "loc": { "type": "Point", "coordinates": [ -85.14359, 45.144511 ] }, "external_id": 27624614, "priority": true, "ignored": false },
+    { "_id": {"$oid": "60ecb8a616d03d14e86aa2f3"}, "creation_date": "2021-07-12T17:48:22.887Z", "loc": { "type": "Point", "coordinates": [ -85.14359, 45.144511 ] }, "external_id": 27878064, "priority": true, "ignored": false }
+
+];
 
 nodes.forEach(obj => { obj._id = ObjectId(obj._id['$oid']); obj.creation_date = new Date(obj.creation_date['$date']); print(db.nodes.insert(obj))})
