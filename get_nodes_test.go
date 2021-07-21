@@ -394,57 +394,57 @@ func TestGetNodesExclude(t *testing.T) {
 	if err != nil {
 		t.Errorf("got an error: %v", err)
 	}
-	excluded_ids := make([]int, 3)
+	excludedIDs := make([]int, 3)
 
 	if len(nodes) == 0 {
 		t.Errorf("No nodes in response")
 		return
 	}
-	excluded_ids[0] = nodes[0].ExternalId
-	options.Exclude = strings.Trim(strings.Replace(fmt.Sprint(excluded_ids), " ", "|", -1), "[]")
+	excludedIDs[0] = nodes[0].ExternalId
+	options.Exclude = strings.Trim(strings.Replace(fmt.Sprint(excludedIDs), " ", "|", -1), "[]")
 
 	nodes, err = getNodes(options)
 	if err != nil {
 		t.Errorf("got an error: %v", err)
 	}
 	for index, node := range nodes {
-		for _, excluded_id := range excluded_ids {
-			if node.ExternalId == excluded_id {
-				t.Errorf("nodes[%d].ExternalId in excluded list (%d)", index, excluded_id)
+		for _, excludedID := range excludedIDs {
+			if node.ExternalId == excludedID {
+				t.Errorf("nodes[%d].ExternalId in excluded list (%d)", index, excludedID)
 			}
 		}
 	}
 
 	// add a second excluded
 
-	excluded_ids[1] = nodes[0].ExternalId
-	options.Exclude = strings.Trim(strings.Replace(fmt.Sprint(excluded_ids), " ", "|", -1), "[]")
+	excludedIDs[1] = nodes[0].ExternalId
+	options.Exclude = strings.Trim(strings.Replace(fmt.Sprint(excludedIDs), " ", "|", -1), "[]")
 
 	nodes, err = getNodes(options)
 	if err != nil {
 		t.Errorf("got an error: %v", err)
 	}
 	for index, node := range nodes {
-		for _, excluded_id := range excluded_ids {
-			if node.ExternalId == excluded_id {
-				t.Errorf("nodes[%d].ExternalId in excluded list (%d)", index, excluded_id)
+		for _, excludedID := range excludedIDs {
+			if node.ExternalId == excludedID {
+				t.Errorf("nodes[%d].ExternalId in excluded list (%d)", index, excludedID)
 			}
 		}
 	}
 
 	// and a third
 
-	excluded_ids[2] = nodes[0].ExternalId
-	options.Exclude = strings.Trim(strings.Replace(fmt.Sprint(excluded_ids), " ", "|", -1), "[]")
+	excludedIDs[2] = nodes[0].ExternalId
+	options.Exclude = strings.Trim(strings.Replace(fmt.Sprint(excludedIDs), " ", "|", -1), "[]")
 
 	nodes, err = getNodes(options)
 	if err != nil {
 		t.Errorf("got an error: %v", err)
 	}
 	for index, node := range nodes {
-		for _, excluded_id := range excluded_ids {
-			if node.ExternalId == excluded_id {
-				t.Errorf("nodes[%d].ExternalId in excluded list (%d)", index, excluded_id)
+		for _, excludedID := range excludedIDs {
+			if node.ExternalId == excludedID {
+				t.Errorf("nodes[%d].ExternalId in excluded list (%d)", index, excludedID)
 			}
 		}
 	}
