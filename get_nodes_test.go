@@ -164,7 +164,7 @@ func defaultUrl() string {
 func TestGetNodesHandlerServerTiming(t *testing.T) {
 	req := httptest.NewRequest("GET", defaultUrl(), nil)
 	w := httptest.NewRecorder()
-	GetNodesHandler(w, req)
+	GetNodesHandlerWithTiming.ServeHTTP(w, req)
 	resp := w.Result()
 
 	if len(resp.Header.Get("Server-Timing")) == 0 {

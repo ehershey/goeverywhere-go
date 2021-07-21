@@ -99,10 +99,12 @@ type getNodesResponse struct {
 
 var decoder = schema.NewDecoder()
 
-//// Wrap our handler with the server timing middleware
-//var GetNodesHandler = servertiming.Middleware(http.HandlerFunc(GetNodesHandler_raw), nil)
+// GetNodesHandlerWithTiming wraps our handler with
+// the server timing middleware
+var GetNodesHandlerWithTiming = servertiming.Middleware(http.HandlerFunc(GetNodesHandler), nil)
 
-//// without server timing headers
+// GetNodesHandler returns nodes based on an HTTP request
+// without server timing headers
 func GetNodesHandler(w http.ResponseWriter, r *http.Request) {
 
 	timing := servertiming.FromContext(r.Context())
@@ -146,7 +148,7 @@ func GetNodesHandler(w http.ResponseWriter, r *http.Request) {
 
 	h := md5.New()
 	io.WriteString(h, fmt.Sprintf("%s%f%f%f%f%f%f%f", roptions.BoundString, roptions.MinLon, roptions.MaxLon, roptions.MinLat, roptions.MaxLat, roptions.FromLat, roptions.FromLon, roptions.MaxDistance))
-	request_hash := fmt.Sprintf("%x", h.Sum(nil))
+	requestHash := fmt.Sprintf("%x", h.Sum(nil))
 
 	totalcount, err := getTotalCount()
 	if err != nil {
@@ -165,7 +167,7 @@ func GetNodesHandler(w http.ResponseWriter, r *http.Request) {
 		FromLon:     roptions.FromLon,
 		FromLat:     roptions.FromLat,
 		MaxDistance: roptions.MaxDistance,
-		Rid:         request_hash,
+		Rid:         requestHash,
 		Points:      nodes,
 		BoundString: roptions.BoundString,
 		Count:       len(nodes),
