@@ -341,19 +341,19 @@ func TestGetNodesHandler(t *testing.T) {
 	var responsejson map[string]interface{}
 	json.Unmarshal([]byte(body), &responsejson)
 
-	if responsejson["min_lon"] != -80.0 {
+	if responsejson["min_lon"] != 0.0 {
 		t.Errorf("Response JSON doesn't contain 'min_lon' key set to -80: (%f) / %s", responsejson["min_lon"], body[0:80])
 	}
 
-	if responsejson["min_lat"] != -80.0 {
+	if responsejson["min_lat"] != 0.0 {
 		t.Errorf("Response JSON doesn't contain 'min_lat' key set to -80: (%f) / %s", responsejson["min_lat"], body[0:80])
 	}
 
-	if responsejson["max_lon"] != 80.0 {
+	if responsejson["max_lon"] != 0.0 {
 		t.Errorf("Response JSON doesn't contain 'max_lon' key set to 80: (%f) / %s", responsejson["max_lon"], body[0:80])
 	}
 
-	if responsejson["max_lat"] != 80.0 {
+	if responsejson["max_lat"] != 0.0 {
 		t.Errorf("Response JSON doesn't contain 'max_lat' key set to 80: (%f) / %s", responsejson["max_lat"], body[0:80])
 	}
 
@@ -457,8 +457,9 @@ func TestGetNodesHandlerGeoSort(t *testing.T) {
 
 	fromLat := 45.12288994887447
 	fromLon := -85.2045903580654
+	limit := 9
 
-	req := httptest.NewRequest("GET", fmt.Sprintf("http://localhost:1234/nodes?allow_ignored=false&require_priority=true&exclude=294876208|4245240|294876209|294876210&limit=1000&max_distance=%f&from_lat=%f&from_lon=%f&bound_string=%%28%%2840.58934490420493%%2C%%20-74.00047944472679%%29%%2C%%20%%2840.591811709253925%%2C%%20-73.99345205645294%%29%%29&rind=1/1&ts=1612114799249", maxDistance, fromLat, fromLon), nil)
+	req := httptest.NewRequest("GET", fmt.Sprintf("http://localhost:1234/nodes?allow_ignored=false&require_priority=true&exclude=294876208|4245240|294876209|294876210&limit=%d&max_distance=%f&from_lat=%f&from_lon=%f&bound_string=%%28%%2840.58934490420493%%2C%%20-74.00047944472679%%29%%2C%%20%%2840.591811709253925%%2C%%20-73.99345205645294%%29%%29&rind=1/1&ts=1612114799249", limit, maxDistance, fromLat, fromLon), nil)
 	w := httptest.NewRecorder()
 	GetNodesHandler(w, req)
 	resp := w.Result()
@@ -482,12 +483,13 @@ func TestGetNodesHandlerGeoSort(t *testing.T) {
 	var typedPoint *geo.Point
 	var distance float64
 	log.Println("len(nodes):", len(nodes))
+	maxDistanceSoFar := 0.0
 	for _, node := range nodes {
 		typedPoint = geo.NewPoint(node.GetLat(), node.GetLon())
 		distance = center.GreatCircleDistance(typedPoint)
 		log.Println("distance:", distance)
-		if distance > maxDistance {
-			t.Errorf("distance in returned node (%f) is greater than max_distance(%f) (node: %v) (typedPoint: %v) (center: %v)", distance, maxDistance, node, typedPoint, center)
+		if distance < maxDistanceSoFar {
+			t.Errorf("distance in returned node (%f) is less than previously max distance(%f) (node: %v) (typedPoint: %v) (center: %v)", distance, maxDistanceSoFar, node, typedPoint, center)
 		}
 	}
 }

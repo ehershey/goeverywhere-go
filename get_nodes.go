@@ -173,18 +173,6 @@ func (roptions *GetNodesOptions) sanitize() GetNodesOptions {
 	if roptions.Limit == 0 {
 		roptions.Limit = default_limit
 	}
-	if roptions.MinLon == 0 {
-		roptions.MinLon = -80
-	}
-	if roptions.MinLat == 0 {
-		roptions.MinLat = -80
-	}
-	if roptions.MaxLon == 0 {
-		roptions.MaxLon = 80
-	}
-	if roptions.MaxLat == 0 {
-		roptions.MaxLat = 80
-	}
 	return *roptions
 }
 
@@ -222,23 +210,25 @@ func getNodes(roptions GetNodesOptions) ([]node, error) {
 
 	var ands []bson.M
 
-	box_query := bson.M{"loc": bson.M{"$geoIntersects": bson.M{"$geometry": bson.M{"type": "Polygon",
-		"coordinates": bson.A{bson.A{bson.A{roptions.MinLon,
-			roptions.MinLat},
-			bson.A{roptions.MinLon,
-				roptions.MaxLat},
-			bson.A{roptions.MaxLon,
-				roptions.MaxLat},
-			bson.A{roptions.MaxLon,
+	if roptions.MinLon != 0 || roptions.MinLat != 0 || roptions.MaxLon != 0 || roptions.MaxLat != 0 {
+		box_query := bson.M{"loc": bson.M{"$geoIntersects": bson.M{"$geometry": bson.M{"type": "Polygon",
+			"coordinates": bson.A{bson.A{bson.A{roptions.MinLon,
 				roptions.MinLat},
-			bson.A{roptions.MinLon,
-				roptions.MinLat}}},
-	},
-	},
-	},
-	}
+				bson.A{roptions.MinLon,
+					roptions.MaxLat},
+				bson.A{roptions.MaxLon,
+					roptions.MaxLat},
+				bson.A{roptions.MaxLon,
+					roptions.MinLat},
+				bson.A{roptions.MinLon,
+					roptions.MinLat}}},
+		},
+		},
+		},
+		}
 
-	ands = append(ands, box_query)
+		ands = append(ands, box_query)
+	}
 
 	// Fields generally only present in db when == true
 	// defaults are to return only priority nodes that aren't ignored
@@ -284,9 +274,13 @@ func getNodes(roptions GetNodesOptions) ([]node, error) {
 	}
 
 	// query := bson.E{Key: "$and", Value: ands}
-	query := bson.M{"$and": ands}
+	query := bson.M{}
+	if len(ands) > 0 {
+		query["$and"] = ands
+	}
 
-	// log.Println("query:", query)
+	log.Println("ands:", ands)
+	log.Println("query:", query)
 
 	// query = bson.M{"$and": []bson.M{bson.M{"storyID": 123}, bson.M{"parentID": 432}}}
 	find_opts := options.Find()
