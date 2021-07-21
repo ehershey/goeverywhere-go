@@ -20,27 +20,12 @@ import (
 	"time"
 )
 
-const collection_name = "nodes"
+const nodes_collection_name = "nodes"
 
 const default_limit = 1000
 
-func getCollection() (*mongo.Client, *mongo.Collection, error) {
-
-	config, err := GetConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	client, err := mongo.NewClient(options.Client().ApplyURI(config.MongoDB_Uri))
-	if err != nil {
-		log.Println("got an error:", err)
-		return nil, nil, err
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	err = client.Connect(ctx)
-	collection := client.Database(config.DB_Name).Collection(collection_name)
-	return client, collection, nil
+func getNodesCollection() (*mongo.Client, *mongo.Collection, error) {
+	return getCollectionByName(nodes_collection_name)
 }
 
 type GetNodesOptions struct {
@@ -207,7 +192,7 @@ func getTotalCount() (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	client, collection, err := getCollection()
+	client, collection, err := getNodesCollection()
 	if err != nil {
 		log.Println("got an error:", err)
 		return 0, err
@@ -221,7 +206,7 @@ func getNodes(roptions GetNodesOptions) ([]node, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	client, collection, err := getCollection()
+	client, collection, err := getNodesCollection()
 	if err != nil {
 		log.Println("got an error:", err)
 		return nil, err
