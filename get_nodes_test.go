@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/kellydunn/golang-geo"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"net/http/httptest"
 	"os"
@@ -284,12 +285,12 @@ func TestGetNodesHandlerMaxDistance(t *testing.T) {
 		t.Errorf("got error: %w", err)
 	}
 
-	node := response.Points
+	nodes := response.Points
 
 	center := geo.NewPoint(fromLat, fromLon)
 	var typedPoint *geo.Point
 	var distance float64
-	for _, node := range node {
+	for _, node := range nodes {
 		typedPoint = geo.NewPoint(node.GetLat(), node.GetLon())
 		distance = center.GreatCircleDistance(typedPoint)
 		// log.Println("distance:", distance)
@@ -446,6 +447,47 @@ func TestGetNodesExclude(t *testing.T) {
 			if node.ExternalId == excludedID {
 				t.Errorf("nodes[%d].ExternalId in excluded list (%d)", index, excludedID)
 			}
+		}
+	}
+}
+
+func TestGetNodesHandlerGeoSort(t *testing.T) {
+
+	maxDistance := r.Float64() * 0
+
+	fromLat := 45.12288994887447
+	fromLon := -85.2045903580654
+
+	req := httptest.NewRequest("GET", fmt.Sprintf("http://localhost:1234/nodes?allow_ignored=false&require_priority=true&exclude=294876208|4245240|294876209|294876210&limit=1000&max_distance=%f&from_lat=%f&from_lon=%f&bound_string=%%28%%2840.58934490420493%%2C%%20-74.00047944472679%%29%%2C%%20%%2840.591811709253925%%2C%%20-73.99345205645294%%29%%29&rind=1/1&ts=1612114799249", maxDistance, fromLat, fromLon), nil)
+	w := httptest.NewRecorder()
+	GetNodesHandler(w, req)
+	resp := w.Result()
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	if resp.StatusCode != 200 {
+		t.Errorf("resp.StatusCode = %d; want 200", resp.StatusCode)
+	}
+
+	if resp.Header.Get("Content-Type") != "application/json" {
+		t.Errorf("resp.Header.Get(\"Content-Type\") = %v; want \"application/json\", body: %.80s", resp.Header.Get("Content-Type"), string(body))
+	}
+	err, response := DecodeResponse(body)
+	if err != nil {
+		t.Errorf("got error: %w", err)
+	}
+
+	nodes := response.Points
+
+	center := geo.NewPoint(fromLat, fromLon)
+	var typedPoint *geo.Point
+	var distance float64
+	log.Println("len(nodes):", len(nodes))
+	for _, node := range nodes {
+		typedPoint = geo.NewPoint(node.GetLat(), node.GetLon())
+		distance = center.GreatCircleDistance(typedPoint)
+		log.Println("distance:", distance)
+		if distance > maxDistance {
+			t.Errorf("distance in returned node (%f) is greater than max_distance(%f) (node: %v) (typedPoint: %v) (center: %v)", distance, maxDistance, node, typedPoint, center)
 		}
 	}
 }
