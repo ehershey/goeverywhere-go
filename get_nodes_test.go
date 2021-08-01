@@ -457,7 +457,8 @@ func TestGetNodesHandlerGeoSort(t *testing.T) {
 
 	fromLat := 45.12288994887447
 	fromLon := -85.2045903580654
-	limit := 9
+	limit := 9999
+	minCount := 791
 
 	req := httptest.NewRequest("GET", fmt.Sprintf("http://localhost:1234/nodes?allow_ignored=false&require_priority=true&exclude=294876208|4245240|294876209|294876210&limit=%d&max_distance=%f&from_lat=%f&from_lon=%f&bound_string=%%28%%2840.58934490420493%%2C%%20-74.00047944472679%%29%%2C%%20%%2840.591811709253925%%2C%%20-73.99345205645294%%29%%29&rind=1/1&ts=1612114799249", limit, maxDistance, fromLat, fromLon), nil)
 	w := httptest.NewRecorder()
@@ -483,6 +484,56 @@ func TestGetNodesHandlerGeoSort(t *testing.T) {
 	var typedPoint *geo.Point
 	var distance float64
 	log.Println("len(nodes):", len(nodes))
+	if len(nodes) < minCount {
+		t.Errorf("Not enough nodes returned in test (got %d, expected at least %d)", len(nodes), minCount)
+	}
+	maxDistanceSoFar := 0.0
+	for _, node := range nodes {
+		typedPoint = geo.NewPoint(node.GetLat(), node.GetLon())
+		distance = center.GreatCircleDistance(typedPoint)
+		// log.Println("distance:", distance)
+		if distance < maxDistanceSoFar {
+			t.Errorf("distance in returned node (%f) is less than previously max distance(%f) (node: %v) (typedPoint: %v) (center: %v)", distance, maxDistanceSoFar, node, typedPoint, center)
+		}
+	}
+}
+
+func TestGetNodesHandlerGeoSortWithBounds(t *testing.T) {
+
+	maxDistance := r.Float64() * 0
+
+	fromLat := 45.12288994887447
+	fromLon := -85.2045903580654
+	limit := 9999
+	minCount := 791
+
+	req := httptest.NewRequest("GET", fmt.Sprintf("http://localhost:1234/nodes?allow_ignored=false&require_priority=true&exclude=294876208|4245240|294876209|294876210&limit=%d&max_distance=%f&from_lat=%f&from_lon=%f&bound_string=%%28%%2840.58934489420493%%2C%%20-74.00047944472679%%29%%2C%%20%%2840.591811709253925%%2C%%20-73.99345205645294%%29%%29&rind=1/1&ts=1612114799249&min_lon=-89&max_lon=89&min_lat=-89&max_lat=89", limit, maxDistance, fromLat, fromLon), nil)
+	w := httptest.NewRecorder()
+	GetNodesHandler(w, req)
+	resp := w.Result()
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	if resp.StatusCode != 200 {
+		t.Errorf("resp.StatusCode = %d; want 200", resp.StatusCode)
+	}
+
+	if resp.Header.Get("Content-Type") != "application/json" {
+		t.Errorf("resp.Header.Get(\"Content-Type\") = %v; want \"application/json\", body: %.80s", resp.Header.Get("Content-Type"), string(body))
+	}
+	err, response := DecodeResponse(body)
+	if err != nil {
+		t.Errorf("got error: %w", err)
+	}
+
+	nodes := response.Points
+
+	center := geo.NewPoint(fromLat, fromLon)
+	var typedPoint *geo.Point
+	var distance float64
+	log.Println("len(nodes):", len(nodes))
+	if len(nodes) < minCount {
+		t.Errorf("Not enough nodes returned in test (got %d, expected at least %d)", len(nodes), minCount)
+	}
 	maxDistanceSoFar := 0.0
 	for _, node := range nodes {
 		typedPoint = geo.NewPoint(node.GetLat(), node.GetLon())
