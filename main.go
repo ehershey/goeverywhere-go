@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-const autoupdate_version = 35
+const autoupdate_version = 37
 
 var routes []string
 
@@ -20,6 +20,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", index)
 	r.Handle("/nodes", GetNodesHandlerWithTiming)
+	r.Handle("/refresh_nodes", RefreshNodesHandlerWithTiming)
 	r.HandleFunc("/points", GetNodesHandler)
 	r.HandleFunc("/bookmarks", GetNodesHandler)
 	r.HandleFunc("/echo", echo)

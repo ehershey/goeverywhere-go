@@ -11,6 +11,7 @@ require (
 	github.com/kylelemons/go-gypsy v1.0.0 // indirect
 	github.com/lib/pq v1.9.0 // indirect
 	github.com/mitchellh/go-server-timing v1.0.1
+	github.com/xeonx/timeago v1.0.0-rc4 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.mongodb.org/mongo-driver v1.4.5
 )
