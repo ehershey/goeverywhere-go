@@ -51,12 +51,17 @@ type point struct {
 }
 
 type node struct {
-	Id           primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
-	CreationDate time.Time          `bson:"creation_date" json:"creation_date"`
-	Loc          point              `bson:"loc" json:"loc"`
-	ExternalId   int                `bson:"external_id,omitempty" json:"external_id"`
-	Priority     bool               `bson:"priority" json:"priority"`
-	Ignored      bool               `bson:"ignored" json:"ignored"`
+	Id              primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
+	CreationDate    time.Time          `bson:"creation_date" json:"creation_date"`
+	Loc             point              `bson:"loc" json:"loc"`
+	ExternalId      int                `bson:"external_id,omitempty" json:"external_id"`
+	Priority        bool               `bson:"priority" json:"priority"`
+	Ignored         bool               `bson:"ignored" json:"ignored"`
+	StreetName      string             `bson:"street_name" json:"street_name"`
+	StreetNodeCount int                `bson:"street_node_count" json:"street_node_count"`
+	CityName        string             `bson:"city_name" json:"city_name"`
+	StreetID        int                `bson:"street_id" json:"street_id"`
+	CityID          int                `bson:"city_id" json:"city_id"`
 }
 
 func (n *node) GetLat() float64 {
