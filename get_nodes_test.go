@@ -204,7 +204,7 @@ func TestGetNodesHandlerHashing(t *testing.T) {
 	}
 	err, response := DecodeResponse(body)
 	if err != nil {
-		t.Errorf("got error: %w", err)
+		t.Errorf("got error: %v", err)
 	}
 
 	seenHashes[response.Rid] = true
@@ -226,7 +226,7 @@ func TestGetNodesHandlerHashing(t *testing.T) {
 	}
 	err, response = DecodeResponse(body)
 	if err != nil {
-		t.Errorf("got error: %w", err)
+		t.Errorf("got error: %v", err)
 	}
 
 	if seenHashes[response.Rid] {
@@ -251,7 +251,7 @@ func TestGetNodesHandlerHashing(t *testing.T) {
 	}
 	err, response = DecodeResponse(body)
 	if err != nil {
-		t.Errorf("got error: %w", err)
+		t.Errorf("got error: %v", err)
 	}
 
 	if seenHashes[response.Rid] {
@@ -282,7 +282,7 @@ func TestGetNodesHandlerMaxDistance(t *testing.T) {
 	}
 	err, response := DecodeResponse(body)
 	if err != nil {
-		t.Errorf("got error: %w", err)
+		t.Errorf("got error: %v", err)
 	}
 
 	nodes := response.Points
@@ -475,7 +475,7 @@ func TestGetNodesHandlerGeoSort(t *testing.T) {
 	}
 	err, response := DecodeResponse(body)
 	if err != nil {
-		t.Errorf("got error: %w", err)
+		t.Errorf("got error: %v", err)
 	}
 
 	nodes := response.Points
@@ -522,7 +522,7 @@ func TestGetNodesHandlerGeoSortWithBounds(t *testing.T) {
 	}
 	err, response := DecodeResponse(body)
 	if err != nil {
-		t.Errorf("got error: %w", err)
+		t.Errorf("got error: %v", err)
 	}
 
 	nodes := response.Points
