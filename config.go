@@ -6,7 +6,7 @@ import (
 
 type Specification struct {
 	ListenPort  int    `default:"1234"`
-	MongoDB_Uri string `default:"mongodb://localhost:27017"`
+	MongoDB_Uri string `default:"mongodb://127.0.0.1:27017"`
 	DB_Name     string `default:"test"`
 }
 
