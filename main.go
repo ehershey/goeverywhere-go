@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 37
+const autoupdate_version = 40
 
 var routes []string
 
@@ -25,6 +26,7 @@ func main() {
 	r.HandleFunc("/bookmarks", GetNodesHandler)
 	r.HandleFunc("/echo", echo)
 	r.HandleFunc("/kv", KeyValueHandler)
+	r.HandleFunc("/version", VersionHandler)
 
 	err = r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		pathTemplate, err := route.GetPathTemplate()
