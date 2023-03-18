@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 40
+const autoupdate_version = 41
 
 var routes []string
 
@@ -58,4 +58,8 @@ func echo(w http.ResponseWriter, r *http.Request) {
 func index(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "routes: %v\n", routes)
+}
+
+func VersionHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "%d", autoupdate_version)
 }
