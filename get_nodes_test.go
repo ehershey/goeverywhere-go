@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/kellydunn/golang-geo"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -12,6 +11,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	geo "github.com/kellydunn/golang-geo"
 )
 
 var r *rand.Rand
