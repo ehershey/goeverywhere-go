@@ -6,18 +6,27 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/alecthomas/kingpin"
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 42
+const autoupdate_version = 57
 
 var routes []string
 
+// var MongoDB_Uri = kingpin.Flag("mongodb_uri", "MongoDB URI").String()
+
+// var app = kingpin.New(os.Args[0], "GO Everywhere backend")
+
 func main() {
+	// app.GetFlag("help").Short('h')
+	// app.GetFlag("version").Short('v')
 	config, err := GetConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
+	kingpin.Version(version())
+	kingpin.Parse()
 	r := mux.NewRouter()
 	r.HandleFunc("/", index)
 	r.Handle("/nodes", GetNodesHandlerWithTiming)
@@ -61,5 +70,9 @@ func index(w http.ResponseWriter, r *http.Request) {
 }
 
 func VersionHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "%d", autoupdate_version)
+	fmt.Fprintf(w, version())
+}
+
+func version() string {
+	return fmt.Sprintf("%d", autoupdate_version)
 }
