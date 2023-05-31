@@ -2,21 +2,31 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/alecthomas/kingpin"
+	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 37
+const autoupdate_version = 57
 
 var routes []string
 
+// var MongoDB_Uri = kingpin.Flag("mongodb_uri", "MongoDB URI").String()
+
+// var app = kingpin.New(os.Args[0], "GO Everywhere backend")
+
 func main() {
+	// app.GetFlag("help").Short('h')
+	// app.GetFlag("version").Short('v')
 	config, err := GetConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
+	kingpin.Version(version())
+	kingpin.Parse()
 	r := mux.NewRouter()
 	r.HandleFunc("/", index)
 	r.Handle("/nodes", GetNodesHandlerWithTiming)
@@ -25,6 +35,7 @@ func main() {
 	r.HandleFunc("/bookmarks", GetNodesHandler)
 	r.HandleFunc("/echo", echo)
 	r.HandleFunc("/kv", KeyValueHandler)
+	r.HandleFunc("/version", VersionHandler)
 
 	err = r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		pathTemplate, err := route.GetPathTemplate()
@@ -56,4 +67,12 @@ func echo(w http.ResponseWriter, r *http.Request) {
 func index(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "routes: %v\n", routes)
+}
+
+func VersionHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, version())
+}
+
+func version() string {
+	return fmt.Sprintf("%d", autoupdate_version)
 }

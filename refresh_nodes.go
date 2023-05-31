@@ -4,10 +4,11 @@ import (
 	// "context"
 	"crypto/md5"
 	"encoding/json"
+
 	// "errors"
 	"fmt"
 	// "github.com/gorilla/schema"
-	"github.com/mitchellh/go-server-timing"
+
 	// "go.mongodb.org/mongo-driver/bson"
 	// "go.mongodb.org/mongo-driver/bson/primitive"
 	// "go.mongodb.org/mongo-driver/mongo"
@@ -15,6 +16,8 @@ import (
 	"io"
 	"log"
 	"net/http"
+
+	servertiming "github.com/mitchellh/go-server-timing"
 	// "strconv"
 	// "strings"
 	// "time"
