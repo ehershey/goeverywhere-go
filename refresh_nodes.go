@@ -150,6 +150,9 @@ func decodeRefreshNodesResponse(jsondata []byte) (*RefreshNodesResponse, error) 
 // RefreshNodes kicks off a node refresh with the given options
 // it returns a jobid
 func RefreshNodes(roptions RefreshNodesOptions) (string, error) {
-	jobid := "abc123"
+	jobid := fmt.Sprintf("%f / %f / %f / %f", roptions.MinLon,
+		roptions.MinLat,
+		roptions.MaxLon,
+		roptions.MaxLat)
 	return jobid, nil
 }
