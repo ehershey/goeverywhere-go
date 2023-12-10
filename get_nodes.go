@@ -25,6 +25,8 @@ const nodes_collection_name = "nodes"
 
 const default_limit = 1000
 
+const default_timeout_seconds = 60
+
 func getNodesCollection() (*mongo.Client, *mongo.Collection, error) {
 	return getCollectionByName(nodes_collection_name)
 }
@@ -63,6 +65,7 @@ type node struct {
 	CityName        string             `bson:"city_name" json:"city_name"`
 	StreetID        int                `bson:"street_id" json:"street_id"`
 	CityID          int                `bson:"city_id" json:"city_id"`
+	Deactivated     bool               `bson:"deactivated" json:"deactivated"`
 }
 
 func (n *node) GetLat() float64 {
@@ -183,7 +186,7 @@ func (roptions *GetNodesOptions) sanitize() GetNodesOptions {
 }
 
 func getTotalCount() (int64, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), default_timeout_seconds*time.Second)
 	defer cancel()
 
 	client, collection, err := getNodesCollection()
@@ -197,7 +200,7 @@ func getTotalCount() (int64, error) {
 }
 
 func getNodes(roptions GetNodesOptions) ([]node, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), default_timeout_seconds*time.Second)
 	defer cancel()
 
 	client, collection, err := getNodesCollection()
@@ -241,6 +244,8 @@ func getNodes(roptions GetNodesOptions) ([]node, error) {
 	if roptions.AllowIgnored == false {
 		ands = append(ands, bson.M{"ignored": bson.M{"$ne": true}})
 	}
+
+	ands = append(ands, bson.M{"deactivated": bson.M{"$ne": true}})
 
 	if roptions.RequirePriority == true {
 		ands = append(ands, bson.M{"priority": true})
