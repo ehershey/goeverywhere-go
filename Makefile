@@ -4,7 +4,7 @@ goe: *.go
 
 release: goe.linux
 
-goe.linux: test.success
+goe.linux: test.success goe
 	GOOS=linux GOARCH=amd64 go build -o goe.linux
 
 test: *.go
