@@ -219,6 +219,25 @@ func getNodes(roptions GetNodesOptions) ([]node, error) {
 
 	var ands []bson.M
 
+	if roptions.FromLat != 0 && roptions.FromLon != 0 {
+		coords := make([]float64, 2)
+		coords[0] = roptions.FromLon
+		coords[1] = roptions.FromLat
+		current_location := point{Type: "Point", Coordinates: coords}
+		// var loc_doc []bson.M
+		var loc_doc bson.D
+		loc_doc = append(loc_doc, bson.E{Key: "$near", Value: current_location})
+
+		if roptions.MaxDistance > 0 {
+			// near_query["loc"].(map[string]interface{})["$maxDistance"] = roptions.MaxDistance
+			//near_query["loc"].(bson.D)["$maxDistance"] = roptions.MaxDistance
+			loc_doc = append(loc_doc, bson.E{Key: "$maxDistance", Value: roptions.MaxDistance})
+		}
+		near_query := bson.M{"loc": loc_doc}
+
+		ands = append(ands, near_query)
+	}
+
 	if roptions.MinLon != 0 || roptions.MinLat != 0 || roptions.MaxLon != 0 || roptions.MaxLat != 0 {
 		box_query := bson.M{"loc": bson.M{"$geoIntersects": bson.M{"$geometry": bson.M{"type": "Polygon",
 			"coordinates": bson.A{bson.A{bson.A{roptions.MinLon,
@@ -249,25 +268,6 @@ func getNodes(roptions GetNodesOptions) ([]node, error) {
 
 	if roptions.RequirePriority == true {
 		ands = append(ands, bson.M{"priority": true})
-	}
-
-	if roptions.FromLat != 0 && roptions.FromLon != 0 {
-		coords := make([]float64, 2)
-		coords[0] = roptions.FromLon
-		coords[1] = roptions.FromLat
-		current_location := point{Type: "Point", Coordinates: coords}
-		// var loc_doc []bson.M
-		var loc_doc bson.D
-		loc_doc = append(loc_doc, bson.E{Key: "$near", Value: current_location})
-
-		if roptions.MaxDistance > 0 {
-			// near_query["loc"].(map[string]interface{})["$maxDistance"] = roptions.MaxDistance
-			//near_query["loc"].(bson.D)["$maxDistance"] = roptions.MaxDistance
-			loc_doc = append(loc_doc, bson.E{Key: "$maxDistance", Value: roptions.MaxDistance})
-		}
-		near_query := bson.M{"loc": loc_doc}
-
-		ands = append(ands, near_query)
 	}
 
 	if len(roptions.Exclude) > 0 {
