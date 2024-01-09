@@ -1014,7 +1014,19 @@ nodes = [{"_id":{"$oid":"5fe39391d28eaaaced9757a7"},"creation_date":{"$date":"20
     { "_id": {"$oid": "60ecb8a616d03d14e86aa2ed"}, "creation_date": "2021-07-12T17:48:22.879Z", "loc": { "type": "Point", "coordinates": [ -85.143327, 45.143992 ] }, "external_id": 27878061, "priority": true, "ignored": false },
     { "_id": {"$oid": "60ecb8a616d03d14e86aa2eb"}, "creation_date": "2021-07-12T17:48:22.875Z", "loc": { "type": "Point", "coordinates": [ -85.143194, 45.143924 ] }, "external_id": 27878060, "priority": true, "ignored": false },
     { "_id": {"$oid": "60ecb8a616d03d14e86aa1df"}, "creation_date": "2021-07-12T17:48:22.519Z", "loc": { "type": "Point", "coordinates": [ -85.14359, 45.144511 ] }, "external_id": 27624614, "priority": true, "ignored": false },
-    { "_id": {"$oid": "60ecb8a616d03d14e86aa2f3"}, "creation_date": "2021-07-12T17:48:22.887Z", "loc": { "type": "Point", "coordinates": [ -85.14359, 45.144511 ] }, "external_id": 27878064, "priority": true, "ignored": false }
+    { "_id": {"$oid": "60ecb8a616d03d14e86aa2f3"}, "creation_date": "2021-07-12T17:48:22.887Z", "loc": { "type": "Point", "coordinates": [ -85.14359, 45.144511 ] }, "external_id": 27878064, "priority": true, "ignored": false },
+{
+  _id: {"$oid": "6577612e8cb1239c92f52d82"},
+        creation_date: ISODate('2023-12-18T16:02:45.314Z'),
+        loc: { type: 'Point', coordinates: [ -96.7304413, 17.065088 ] },
+        external_id: 243030850,
+        street_name: 'Privada La Soledad',
+        street_node_count: 5,
+        city_name: 'Oaxaca de Juárez',
+        street_id: 12234316,
+        city_id: 160327,
+        priority: true
+    }
 
 ];
 
