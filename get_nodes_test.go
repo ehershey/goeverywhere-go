@@ -23,6 +23,20 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+func TestGetNodeById(t *testing.T) {
+	roptions := GetNodesOptions{NodeId: 243030850}
+	nodes, err := getNodes(roptions.sanitize())
+	if err != nil {
+		t.Errorf("got an error: %v", err)
+	}
+	if len(nodes) != 1 {
+		t.Errorf("len(nodes) = %d; want 1", len(nodes))
+	}
+	if nodes[0].CityName != "Oaxaca de Juárez" {
+		t.Errorf("Node city name = %v; want Oaxaca de Juárez", nodes[0].CityName)
+	}
+}
+
 func TestGetNodesIncludeIgnored(t *testing.T) {
 	roptions := GetNodesOptions{AllowIgnored: true}
 	nodes, err := getNodes(roptions.sanitize())

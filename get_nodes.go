@@ -46,6 +46,7 @@ type GetNodesOptions struct {
 	Ts              string
 	BoundString     string `schema:"bound_string"`
 	Rind            string
+	NodeId          int
 }
 
 type point struct {
@@ -218,6 +219,10 @@ func getNodes(roptions GetNodesOptions) ([]node, error) {
 	}
 
 	var ands []bson.M
+
+	if roptions.NodeId != 0 {
+		ands = append(ands, bson.M{"external_id": roptions.NodeId})
+	}
 
 	if roptions.FromLat != 0 && roptions.FromLon != 0 {
 		coords := make([]float64, 2)
