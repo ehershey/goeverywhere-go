@@ -28,8 +28,8 @@ import (
 
 // IgnoreNodesOptions is options for ignoring nodes
 type IgnoreNodesOptions struct {
-	NodeId int    `json:"node_id"`
-	Action string `json:"action"`
+	NodeId int    `schema:"node_id"`
+	Action string `schema:"action"`
 }
 
 // IgnoreNodesResponse is a response from ignoring nodes
