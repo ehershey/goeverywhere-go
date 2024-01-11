@@ -224,7 +224,7 @@ func getNodes(roptions GetNodesOptions) ([]node, error) {
 		ands = append(ands, bson.M{"external_id": roptions.NodeId})
 	}
 
-	if roptions.FromLat != 0 && roptions.FromLon != 0 {
+	if roptions.FromLat != 0 && roptions.FromLon != 0 && roptions.FromLat != -1 && roptions.FromLon != -1 {
 		coords := make([]float64, 2)
 		coords[0] = roptions.FromLon
 		coords[1] = roptions.FromLat
@@ -269,7 +269,12 @@ func getNodes(roptions GetNodesOptions) ([]node, error) {
 		ands = append(ands, bson.M{"ignored": bson.M{"$ne": true}})
 	}
 
-	ands = append(ands, bson.M{"deactivated": bson.M{"$ne": true}})
+	// Can make this more interesting later.. for now only even acknowledge
+	// deactivated nodes exist if searching for a specific one by ID
+	//
+	if roptions.NodeId == 0 {
+		ands = append(ands, bson.M{"deactivated": bson.M{"$ne": true}})
+	}
 
 	if roptions.RequirePriority == true {
 		ands = append(ands, bson.M{"priority": true})
