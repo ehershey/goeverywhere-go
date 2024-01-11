@@ -24,7 +24,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestGetNodeById(t *testing.T) {
-	roptions := GetNodesOptions{NodeId: 243030850}
+	roptions := GetNodesOptions{NodeId: 243030850, AllowIgnored: true}
 	nodes, err := getNodes(roptions.sanitize())
 	if err != nil {
 		t.Errorf("got an error: %v", err)
@@ -346,7 +346,7 @@ func TestGetNodesHandlerLimit(t *testing.T) {
 }
 
 func TestGetNodesHandlerWithID(t *testing.T) {
-	req := httptest.NewRequest("GET", "http://localhost:1234/nodes?node_id=243030850", nil)
+	req := httptest.NewRequest("GET", "http://localhost:1234/nodes?node_id=243030850&allow_ignored=true", nil)
 	w := httptest.NewRecorder()
 	GetNodesHandler(w, req)
 	resp := w.Result()

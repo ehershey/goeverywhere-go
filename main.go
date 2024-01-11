@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 64
+const autoupdate_version = 65
 
 var routes []string
 
@@ -31,6 +31,7 @@ func main() {
 	r.HandleFunc("/", index)
 	r.Handle("/nodes", GetNodesHandlerWithTiming)
 	r.Handle("/refresh_nodes", RefreshNodesHandlerWithTiming)
+	r.Handle("/ignore_nodes", IgnoreNodesHandlerWithTiming)
 	r.HandleFunc("/points", GetNodesHandler)
 	r.HandleFunc("/bookmarks", GetNodesHandler)
 	r.HandleFunc("/echo", echo)

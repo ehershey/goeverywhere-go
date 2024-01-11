@@ -1025,7 +1025,8 @@ nodes = [{"_id":{"$oid":"5fe39391d28eaaaced9757a7"},"creation_date":{"$date":"20
         city_name: 'Oaxaca de Juárez',
         street_id: 12234316,
         city_id: 160327,
-        priority: true
+        priority: true,
+  ignored: false,
     }
 
 ];
