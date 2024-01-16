@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 65
+const autoupdate_version = 66
 
 var routes []string
 
@@ -21,6 +21,7 @@ var routes []string
 func main() {
 	// app.GetFlag("help").Short('h')
 	// app.GetFlag("version").Short('v')
+	go HandleJobs()
 	config, err := GetConfig()
 	if err != nil {
 		log.Fatal(err)

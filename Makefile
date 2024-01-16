@@ -1,6 +1,9 @@
-.PHONY: goe release test deploy
+.PHONY: release test deploy run
 goe: *.go
 	go build
+
+run: goe
+	./goe
 
 release: goe.linux
 
