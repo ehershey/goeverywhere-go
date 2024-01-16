@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 66
+const autoupdate_version = 67
 
 var routes []string
 
