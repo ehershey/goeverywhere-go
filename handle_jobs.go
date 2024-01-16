@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"time"
 
@@ -15,8 +16,6 @@ import (
 
 const job_check_interval_seconds = 5
 const job_max_run_time_seconds = 30
-
-const command_argv0 = "/tmp/temp.sh"
 
 // const job_max_retries = 5
 
@@ -36,6 +35,13 @@ func HandleJobs() {
 }
 
 func HandleOneJob() error {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		wrappedErr := fmt.Errorf("Error getting my homedir: %v", err)
+		log.Println("got an error:", wrappedErr)
+		return wrappedErr
+	}
+	command_argv0 := fmt.Sprintf("%s/simple_save_bound_nodes.sh", home)
 	ctx, cancel := context.WithTimeout(context.Background(), default_timeout_seconds*time.Second)
 	defer cancel()
 	client, collection, err := getJobsCollection()
@@ -66,11 +72,11 @@ func HandleOneJob() error {
 		fmt.Sprintf("max_lat=%f", job.MaxLat),
 		fmt.Sprintf("min_lon=%f", job.MinLon),
 		fmt.Sprintf("max_lon=%f", job.MaxLon))
-	out, err := cmd.Output()
+	out, err := cmd.CombinedOutput()
 	if err != nil {
 		wrappedErr := fmt.Errorf("Error executing job command: %v", err)
 		log.Println("got an error:", wrappedErr)
-		job.Output = fmt.Sprintf("Error: %v", wrappedErr)
+		job.Output = fmt.Sprintf("Error: %v\nOutput: %s", wrappedErr, out)
 		failedErr := job.SetStatus("failed")
 		if failedErr != nil {
 			wrappedErr2 := fmt.Errorf("Error setting job status: %v", failedErr)
