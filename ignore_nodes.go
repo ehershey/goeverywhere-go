@@ -116,9 +116,9 @@ func ignoreNodes(roptions IgnoreNodesOptions) (*IgnoreNodesResponse, error) {
 	} else {
 		return nil, fmt.Errorf("Invalid action: %s", action)
 	}
-	update := bson.D{{"$set", bson.D{{"ignored", new_value}}}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "ignored", Value: new_value}}}}
 
-	filter := bson.D{{"external_id", roptions.NodeId}}
+	filter := bson.D{{Key: "external_id", Value: roptions.NodeId}}
 
 	result, err := collection.UpdateOne(ctx, filter, update)
 

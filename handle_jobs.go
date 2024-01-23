@@ -50,7 +50,7 @@ func HandleOneJob() error {
 	var job RefreshNodesJob
 
 	filter := bson.M{"job_status": "queued"}
-	update := bson.D{{"$set", bson.D{{"job_status", "started"}, {"status_time", time.Now()}}}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "job_status", Value: "started"}, {Key: "status_time", Value: time.Now()}}}}
 	update_opts := options.FindOneAndUpdate()
 	update_opts.SetReturnDocument(options.After)
 	err = collection.FindOneAndUpdate(ctx, filter, update, update_opts).Decode(&job)
@@ -84,7 +84,7 @@ func HandleOneJob() error {
 			return errors.Join(wrappedErr, wrappedErr2) // just abort if we get a second error while handling the command error
 		}
 
-		filter2 := bson.D{{"_id", job.Id}, {"job_status", "started"}}
+		filter2 := bson.D{{Key: "_id", Value: job.Id}, {Key: "job_status", Value: "started"}}
 		result, err := collection.ReplaceOne(ctx, filter2, job)
 		if err != nil {
 			wrappedErr2 := fmt.Errorf("Error saving job error to DB: %v", err)
@@ -111,7 +111,7 @@ func HandleOneJob() error {
 		return wrappedErr
 	}
 
-	filter3 := bson.D{{"_id", job.Id}, {"job_status", "started"}}
+	filter3 := bson.D{{Key: "_id", Value: job.Id}, {Key: "job_status", Value: "started"}}
 	result, err := collection.ReplaceOne(ctx, filter3, job)
 	if err != nil {
 		wrappedErr := fmt.Errorf("Error saving job output to DB: %v", err)

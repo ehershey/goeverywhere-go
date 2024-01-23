@@ -265,7 +265,7 @@ func GetJob(jobid string) (*RefreshNodesJob, error) {
 	}
 	defer client.Disconnect(ctx)
 
-	filter := bson.D{{"job_id", jobid}}
+	filter := bson.D{{Key: "job_id", Value: jobid}}
 
 	var job RefreshNodesJob
 	err = collection.FindOne(ctx, filter, options.FindOne()).Decode(&job)
