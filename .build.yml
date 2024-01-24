@@ -14,6 +14,7 @@ tasks:
         sudo rpm --import server-7.0.asc
         sudo dnf install -y mongodb-org
         sudo systemctl start mongod
+        sudo dnf swap mongodb-mongosh  mongodb-mongosh-shared-openssl3 -y
     - setup-golang: |
         curl -LO https://golang.org/dl/go${goversion}.linux-amd64.tar.gz
         sudo tar -C /usr/local -xzf go${goversion}.linux-amd64.tar.gz
