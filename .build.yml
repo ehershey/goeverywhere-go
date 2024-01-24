@@ -9,9 +9,9 @@ sources:
 tasks:
     - setup-mongo: |
         sudo dnf install -y 'dnf-command(config-manager)'
-        sudo dnf config-manager --add-repo https://repo.mongodb.org/yum/redhat/8/mongodb-org/4.4/x86_64
-        curl -LO https://www.mongodb.org/static/pgp/server-4.4.asc
-        sudo rpm --import server-4.4.asc
+        sudo dnf config-manager --add-repo https://repo.mongodb.org/yum/redhat/8/mongodb-org/7.0/x86_64
+        curl -LO https://www.mongodb.org/static/pgp/server-7.0.asc
+        sudo rpm --import server-7.0.asc
         sudo dnf install -y mongodb-org
         sudo systemctl start mongod
     - setup-golang: |
