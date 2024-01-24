@@ -2,14 +2,14 @@ image: fedora/latest
 packages:
   - tar
 environment:
-  goversion: 1.21.5
+  goversion: 1.21.6
   reponame: goeverywhere-go
 sources:
     - https://git.sr.ht/~ernie/goeverywhere-go
 tasks:
     - setup-mongo: |
         sudo dnf install -y 'dnf-command(config-manager)'
-        sudo dnf config-manager --add-repo https://repo.mongodb.org/yum/redhat/8/mongodb-org/7.0/x86_64
+        sudo dnf config-manager --add-repo https://repo.mongodb.org/yum/amazon/2023/mongodb-org/7.0/x86_64
         curl -LO https://www.mongodb.org/static/pgp/server-7.0.asc
         sudo rpm --import server-7.0.asc
         sudo dnf install -y mongodb-org
