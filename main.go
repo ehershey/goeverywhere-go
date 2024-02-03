@@ -12,7 +12,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 112
+const autoupdate_version = 113
 
 var routes []string
 
@@ -28,7 +28,7 @@ func main() {
 	app := kingpin.New(os.Args[0], "GO Everywhere backend")
 
 	app.Version(version())
-	kingpin.CommandLine.HelpFlag.Short('h')
+	app.HelpFlag.Short('h')
 	browseCommand := app.Command("browse", "Open a browser browsing the given node id.")
 	nodeId := browseCommand.Arg("nodeId", "Node ID to browse to").Required().Int()
 
