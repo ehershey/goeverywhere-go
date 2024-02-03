@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"ernie.org/goe/cmd"
-	"github.com/alecthomas/kingpin"
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 96
+const autoupdate_version = 110
 
 var routes []string
 
@@ -24,18 +25,18 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// app := kingpin.New(os.Args[0], "GO Everywhere backend")
-	// command := app.Command("command", "").Default()
-	// flag := command.Flag("flag", "").Bool()
-	// subcommand := command.Command("subcommand", "").Default()
-	// arg := subcommand.Arg("arg", "").Required().String()
+	app := kingpin.New(os.Args[0], "GO Everywhere backend")
+	// // arg := subcommand.Arg("arg", "").Required().String()
+	app.Flag("completion-script-bash", "Generate completion script for bash.").Bool()
+	// Hidden().PreAction(a.generateBashCompletionScript).Bool()
 
-	kingpin.Version(version())
-	browseCommand := kingpin.Command("browse", "Open a browser browsing the given node id.")
+	app.Version(version())
+	kingpin.CommandLine.HelpFlag.Short('h')
+	browseCommand := app.Command("browse", "Open a browser browsing the given node id.")
 	nodeId := browseCommand.Arg("nodeId", "Node ID to browse to").Required().Int()
 
-	serveCommand := kingpin.Command("serve", "Run backend code.").Default()
-	switch kingpin.Parse() {
+	serveCommand := app.Command("serve", "Run backend code.").Default()
+	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case browseCommand.FullCommand():
 		cmd.Browse(*nodeId)
 	case serveCommand.FullCommand():
@@ -44,7 +45,6 @@ func main() {
 		serve()
 	}
 
-	log.Fatal("after parse")
 }
 func serve() {
 
