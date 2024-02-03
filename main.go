@@ -12,7 +12,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 110
+const autoupdate_version = 112
 
 var routes []string
 
@@ -26,9 +26,6 @@ func main() {
 		log.Fatal(err)
 	}
 	app := kingpin.New(os.Args[0], "GO Everywhere backend")
-	// // arg := subcommand.Arg("arg", "").Required().String()
-	app.Flag("completion-script-bash", "Generate completion script for bash.").Bool()
-	// Hidden().PreAction(a.generateBashCompletionScript).Bool()
 
 	app.Version(version())
 	kingpin.CommandLine.HelpFlag.Short('h')
