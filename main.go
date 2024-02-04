@@ -6,13 +6,17 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"ernie.org/goe/cmd"
 	"github.com/alecthomas/kingpin/v2"
+	"github.com/getsentry/sentry-go"
+	sentryhttp "github.com/getsentry/sentry-go/http"
+
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 113
+const autoupdate_version = 121
 
 var routes []string
 
@@ -25,6 +29,18 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	err = sentry.Init(sentry.ClientOptions{
+		Debug:              true,
+		EnableTracing:      true,
+		TracesSampleRate:   1.0,
+		ProfilesSampleRate: 1.0,
+	})
+	if err != nil {
+		log.Fatalf("sentry.Init: %s", err)
+	}
+	defer sentry.Flush(2 * time.Second)
+
 	app := kingpin.New(os.Args[0], "GO Everywhere backend")
 
 	app.Version(version())
@@ -44,17 +60,18 @@ func main() {
 
 }
 func serve() {
+	sentryHandler := sentryhttp.New(sentryhttp.Options{})
 
 	r := mux.NewRouter()
-	r.HandleFunc("/", index)
-	r.Handle("/nodes", GetNodesHandlerWithTiming)
-	r.Handle("/refresh_nodes", RefreshNodesHandlerWithTiming)
-	r.Handle("/ignore_nodes", IgnoreNodesHandlerWithTiming)
-	r.HandleFunc("/points", GetNodesHandler)
-	r.HandleFunc("/bookmarks", GetNodesHandler)
-	r.HandleFunc("/echo", echo)
-	r.HandleFunc("/kv", KeyValueHandler)
-	r.HandleFunc("/version", VersionHandler)
+	r.HandleFunc("/", sentryHandler.HandleFunc(index))
+	r.Handle("/nodes", sentryHandler.Handle(GetNodesHandlerWithTiming))
+	r.Handle("/refresh_nodes", sentryHandler.Handle(RefreshNodesHandlerWithTiming))
+	r.Handle("/ignore_nodes", sentryHandler.Handle(IgnoreNodesHandlerWithTiming))
+	r.HandleFunc("/points", sentryHandler.HandleFunc(GetNodesHandler))
+	r.HandleFunc("/bookmarks", sentryHandler.HandleFunc(GetNodesHandler))
+	r.HandleFunc("/echo", sentryHandler.HandleFunc(echo))
+	r.HandleFunc("/kv", sentryHandler.HandleFunc(KeyValueHandler))
+	r.HandleFunc("/version", sentryHandler.HandleFunc(VersionHandler))
 
 	err := r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		pathTemplate, err := route.GetPathTemplate()
