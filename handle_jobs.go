@@ -15,7 +15,7 @@ import (
 )
 
 const job_check_interval_seconds = 5
-const job_max_run_time_seconds = 30
+const job_max_run_time_seconds = 300 // includes db ops
 
 // const job_max_retries = 5
 
@@ -42,7 +42,7 @@ func HandleOneJob() error {
 		return wrappedErr
 	}
 	command_argv0 := fmt.Sprintf("%s/simple_save_bound_nodes.sh", home)
-	ctx, cancel := context.WithTimeout(context.Background(), default_timeout_seconds*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), job_max_run_time_seconds*time.Second)
 	defer cancel()
 	client, collection, err := getJobsCollection()
 	defer client.Disconnect(ctx)
