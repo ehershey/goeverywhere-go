@@ -25,6 +25,8 @@ const nodes_collection_name = "nodes"
 
 const default_limit = 1000
 
+const default_timeout_seconds = 60
+
 func getNodesCollection() (*mongo.Client, *mongo.Collection, error) {
 	return getCollectionByName(nodes_collection_name)
 }
@@ -44,6 +46,7 @@ type GetNodesOptions struct {
 	Ts              string
 	BoundString     string `schema:"bound_string"`
 	Rind            string
+	NodeId          int `schema:"node_id"`
 }
 
 type point struct {
@@ -63,6 +66,7 @@ type node struct {
 	CityName        string             `bson:"city_name" json:"city_name"`
 	StreetID        int                `bson:"street_id" json:"street_id"`
 	CityID          int                `bson:"city_id" json:"city_id"`
+	Deactivated     bool               `bson:"deactivated" json:"deactivated"`
 }
 
 func (n *node) GetLat() float64 {
@@ -138,7 +142,7 @@ func GetNodesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h := md5.New()
-	io.WriteString(h, fmt.Sprintf("%s%f%f%f%f%f%f%f", roptions.BoundString, roptions.MinLon, roptions.MaxLon, roptions.MinLat, roptions.MaxLat, roptions.FromLat, roptions.FromLon, roptions.MaxDistance))
+	io.WriteString(h, fmt.Sprintf("%s%f%f%f%f%f%f%f%d", roptions.BoundString, roptions.MinLon, roptions.MaxLon, roptions.MinLat, roptions.MaxLat, roptions.FromLat, roptions.FromLon, roptions.MaxDistance, roptions.NodeId))
 	requestHash := fmt.Sprintf("%x", h.Sum(nil))
 
 	totalcount, err := getTotalCount()
@@ -183,7 +187,7 @@ func (roptions *GetNodesOptions) sanitize() GetNodesOptions {
 }
 
 func getTotalCount() (int64, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), default_timeout_seconds*time.Second)
 	defer cancel()
 
 	client, collection, err := getNodesCollection()
@@ -197,7 +201,7 @@ func getTotalCount() (int64, error) {
 }
 
 func getNodes(roptions GetNodesOptions) ([]node, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), default_timeout_seconds*time.Second)
 	defer cancel()
 
 	client, collection, err := getNodesCollection()
@@ -215,6 +219,29 @@ func getNodes(roptions GetNodesOptions) ([]node, error) {
 	}
 
 	var ands []bson.M
+
+	if roptions.NodeId != 0 {
+		ands = append(ands, bson.M{"external_id": roptions.NodeId})
+	}
+
+	if roptions.FromLat != 0 && roptions.FromLon != 0 && roptions.FromLat != -1 && roptions.FromLon != -1 {
+		coords := make([]float64, 2)
+		coords[0] = roptions.FromLon
+		coords[1] = roptions.FromLat
+		current_location := point{Type: "Point", Coordinates: coords}
+		// var loc_doc []bson.M
+		var loc_doc bson.D
+		loc_doc = append(loc_doc, bson.E{Key: "$near", Value: current_location})
+
+		if roptions.MaxDistance > 0 {
+			// near_query["loc"].(map[string]interface{})["$maxDistance"] = roptions.MaxDistance
+			//near_query["loc"].(bson.D)["$maxDistance"] = roptions.MaxDistance
+			loc_doc = append(loc_doc, bson.E{Key: "$maxDistance", Value: roptions.MaxDistance})
+		}
+		near_query := bson.M{"loc": loc_doc}
+
+		ands = append(ands, near_query)
+	}
 
 	if roptions.MinLon != 0 || roptions.MinLat != 0 || roptions.MaxLon != 0 || roptions.MaxLat != 0 {
 		box_query := bson.M{"loc": bson.M{"$geoIntersects": bson.M{"$geometry": bson.M{"type": "Polygon",
@@ -245,27 +272,15 @@ func getNodes(roptions GetNodesOptions) ([]node, error) {
 	//
 	ands = append(ands, bson.M{"deactivated": bson.M{"$ne": true}})
 
-	if roptions.RequirePriority == true {
-		ands = append(ands, bson.M{"priority": true})
+	// Can make this more interesting later.. for now only even acknowledge
+	// deactivated nodes exist if searching for a specific one by ID
+	//
+	if roptions.NodeId == 0 {
+		ands = append(ands, bson.M{"deactivated": bson.M{"$ne": true}})
 	}
 
-	if roptions.FromLat != 0 && roptions.FromLon != 0 {
-		coords := make([]float64, 2)
-		coords[0] = roptions.FromLon
-		coords[1] = roptions.FromLat
-		current_location := point{Type: "Point", Coordinates: coords}
-		// var loc_doc []bson.M
-		var loc_doc bson.D
-		loc_doc = append(loc_doc, bson.E{Key: "$near", Value: current_location})
-
-		if roptions.MaxDistance > 0 {
-			// near_query["loc"].(map[string]interface{})["$maxDistance"] = roptions.MaxDistance
-			//near_query["loc"].(bson.D)["$maxDistance"] = roptions.MaxDistance
-			loc_doc = append(loc_doc, bson.E{Key: "$maxDistance", Value: roptions.MaxDistance})
-		}
-		near_query := bson.M{"loc": loc_doc}
-
-		ands = append(ands, near_query)
+	if roptions.RequirePriority == true {
+		ands = append(ands, bson.M{"priority": true})
 	}
 
 	if len(roptions.Exclude) > 0 {

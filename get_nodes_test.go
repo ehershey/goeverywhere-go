@@ -23,6 +23,20 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+func TestGetNodeById(t *testing.T) {
+	roptions := GetNodesOptions{NodeId: 243030850, AllowIgnored: true}
+	nodes, err := getNodes(roptions.sanitize())
+	if err != nil {
+		t.Errorf("got an error: %v", err)
+	}
+	if len(nodes) != 1 {
+		t.Errorf("len(nodes) = %d; want 1", len(nodes))
+	}
+	if nodes[0].CityName != "Oaxaca de Juárez" {
+		t.Errorf("Node city name = %v; want Oaxaca de Juárez", nodes[0].CityName)
+	}
+}
+
 func TestGetNodesIncludeIgnored(t *testing.T) {
 	roptions := GetNodesOptions{AllowIgnored: true}
 	nodes, err := getNodes(roptions.sanitize())
@@ -330,6 +344,40 @@ func TestGetNodesHandlerLimit(t *testing.T) {
 		t.Errorf("Response JSON point count is not desired count (%d/%d)", returnedCount, limit)
 	}
 }
+
+func TestGetNodesHandlerWithID(t *testing.T) {
+	req := httptest.NewRequest("GET", "http://localhost:1234/nodes?node_id=243030850&allow_ignored=true", nil)
+	w := httptest.NewRecorder()
+	GetNodesHandler(w, req)
+	resp := w.Result()
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	// log.Println("body: ", string(body))
+
+	if resp.StatusCode != 200 {
+		t.Errorf("resp.StatusCode = %d; want 200", resp.StatusCode)
+	}
+
+	if resp.Header.Get("Content-Type") != "application/json" {
+		t.Errorf("resp.Header.Get(\"Content-Type\") = %v; want \"application/json\"", resp.Header.Get("Content-Type"))
+	}
+
+	err, response := DecodeResponse(body)
+	if err != nil {
+		t.Errorf("got error: %v", err)
+	}
+
+	nodes := response.Points
+
+	if len(nodes) != 1 {
+		t.Errorf("len(nodes) = %d; want 1", len(nodes))
+	}
+	if nodes[0].CityName != "Oaxaca de Juárez" {
+		t.Errorf("Node city name = %v; want Oaxaca de Juárez", nodes[0].CityName)
+	}
+
+}
+
 func TestGetNodesHandler(t *testing.T) {
 	req := httptest.NewRequest("GET", "http://localhost:1234/nodes?allow_ignored=false&require_priority=true&exclude=294876208|4245240|294876209|294876210&limit=4&from_lat=40.5900973&from_lon=-73.997701&bound_string=%28%2840.58934490420493%2C%20-74.00047944472679%29%2C%20%2840.591811709253925%2C%20-73.99345205645294%29%29&rind=1/1&ts=1612114799249", nil)
 	w := httptest.NewRecorder()

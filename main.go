@@ -4,40 +4,76 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
+	"time"
 
-	"github.com/alecthomas/kingpin"
+	"ernie.org/goe/cmd"
+	"github.com/alecthomas/kingpin/v2"
+	"github.com/getsentry/sentry-go"
+	sentryhttp "github.com/getsentry/sentry-go/http"
+
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 57
+const autoupdate_version = 121
 
 var routes []string
 
 // var MongoDB_Uri = kingpin.Flag("mongodb_uri", "MongoDB URI").String()
 
-// var app = kingpin.New(os.Args[0], "GO Everywhere backend")
-
 func main() {
-	// app.GetFlag("help").Short('h')
-	// app.GetFlag("version").Short('v')
-	config, err := GetConfig()
+	// parse config to check for errors before doing anything else
+	//
+	_, err := GetConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
-	kingpin.Version(version())
-	kingpin.Parse()
-	r := mux.NewRouter()
-	r.HandleFunc("/", index)
-	r.Handle("/nodes", GetNodesHandlerWithTiming)
-	r.Handle("/refresh_nodes", RefreshNodesHandlerWithTiming)
-	r.HandleFunc("/points", GetNodesHandler)
-	r.HandleFunc("/bookmarks", GetNodesHandler)
-	r.HandleFunc("/echo", echo)
-	r.HandleFunc("/kv", KeyValueHandler)
-	r.HandleFunc("/version", VersionHandler)
 
-	err = r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+	err = sentry.Init(sentry.ClientOptions{
+		Debug:              true,
+		EnableTracing:      true,
+		TracesSampleRate:   1.0,
+		ProfilesSampleRate: 1.0,
+	})
+	if err != nil {
+		log.Fatalf("sentry.Init: %s", err)
+	}
+	defer sentry.Flush(2 * time.Second)
+
+	app := kingpin.New(os.Args[0], "GO Everywhere backend")
+
+	app.Version(version())
+	app.HelpFlag.Short('h')
+	browseCommand := app.Command("browse", "Open a browser browsing the given node id.")
+	nodeId := browseCommand.Arg("nodeId", "Node ID to browse to").Required().Int()
+
+	serveCommand := app.Command("serve", "Run backend code.").Default()
+	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
+	case browseCommand.FullCommand():
+		cmd.Browse(*nodeId)
+	case serveCommand.FullCommand():
+		serve()
+	default:
+		serve()
+	}
+
+}
+func serve() {
+	sentryHandler := sentryhttp.New(sentryhttp.Options{})
+
+	r := mux.NewRouter()
+	r.HandleFunc("/", sentryHandler.HandleFunc(index))
+	r.Handle("/nodes", sentryHandler.Handle(GetNodesHandlerWithTiming))
+	r.Handle("/refresh_nodes", sentryHandler.Handle(RefreshNodesHandlerWithTiming))
+	r.Handle("/ignore_nodes", sentryHandler.Handle(IgnoreNodesHandlerWithTiming))
+	r.HandleFunc("/points", sentryHandler.HandleFunc(GetNodesHandler))
+	r.HandleFunc("/bookmarks", sentryHandler.HandleFunc(GetNodesHandler))
+	r.HandleFunc("/echo", sentryHandler.HandleFunc(echo))
+	r.HandleFunc("/kv", sentryHandler.HandleFunc(KeyValueHandler))
+	r.HandleFunc("/version", sentryHandler.HandleFunc(VersionHandler))
+
+	err := r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		pathTemplate, err := route.GetPathTemplate()
 		if err != nil {
 			log.Fatal(err)
@@ -50,6 +86,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	go HandleJobs()
+	config, err := GetConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
 	log.Println("config:")
 	log.Println("ListenPort: ", config.ListenPort)
 	log.Println("DB_Name: ", config.DB_Name)
