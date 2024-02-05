@@ -11,7 +11,7 @@ goe.linux: test.success goe
 	GOOS=linux GOARCH=amd64 go build -o goe.linux
 
 test: *.go db.created
-	go test -v && touch test.success
+	go test -v && scripts/verify_no_extra_output.sh && ouch test.success
 
 test.success: test
 
