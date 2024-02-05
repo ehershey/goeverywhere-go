@@ -16,7 +16,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 121
+const autoupdate_version = 123
 
 var routes []string
 
@@ -31,7 +31,7 @@ func main() {
 	}
 
 	err = sentry.Init(sentry.ClientOptions{
-		Debug:              true,
+		Debug:              false,
 		EnableTracing:      true,
 		TracesSampleRate:   1.0,
 		ProfilesSampleRate: 1.0,
