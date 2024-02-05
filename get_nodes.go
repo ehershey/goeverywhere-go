@@ -241,6 +241,9 @@ func getNodes(roptions GetNodesOptions) ([]node, error) {
 	if roptions.AllowIgnored == false {
 		ands = append(ands, bson.M{"ignored": bson.M{"$ne": true}})
 	}
+	// no deactivated nodes
+	//
+	ands = append(ands, bson.M{"deactivated": bson.M{"$ne": true}})
 
 	if roptions.RequirePriority == true {
 		ands = append(ands, bson.M{"priority": true})
