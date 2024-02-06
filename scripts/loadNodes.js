@@ -1027,7 +1027,20 @@ nodes = [{"_id":{"$oid":"5fe39391d28eaaaced9757a7"},"creation_date":{"$date":"20
         city_id: 160327,
         priority: true,
   ignored: false,
-    }
+    },
+  {
+        _id: {"$oid": "65059dd7baeb489b6c2b4a92"},
+        creation_date: ISODate('2023-09-24T18:22:13.596Z'),
+        loc: { type: 'Point', coordinates: [ -6.2158195, 53.3276475 ] },
+        external_id: 431695239,
+        street_name: 'Monterey',
+        street_node_count: 7,
+        city_name: 'Dublin',
+        street_id: 19860417,
+        city_id: 171357,
+        priority: true,
+        deactivated: true
+      }
 
 ];
 

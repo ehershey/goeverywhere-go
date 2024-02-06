@@ -598,3 +598,38 @@ func TestGetNodesHandlerGeoSortWithBounds(t *testing.T) {
 		}
 	}
 }
+
+func TestDeactivatedNodesOnlyInSingleNodeResponse(t *testing.T) {
+
+	deactivatedNodeId := 431695239
+
+	roptions := GetNodesOptions{NodeId: deactivatedNodeId}
+	nodes, err := getNodes(roptions.sanitize())
+	if err != nil {
+		t.Errorf("got an error: %v", err)
+	}
+	if len(nodes) != 1 {
+		t.Errorf("Expected one node in response for node id, got %d instead", len(nodes))
+	}
+
+	if nodes[0].ExternalId != deactivatedNodeId {
+		t.Errorf("Wrong ID in returned node: %d (expected %d)", nodes[0].ExternalId, deactivatedNodeId)
+	}
+
+	options := GetNodesOptions{
+		Limit:   1999,
+		FromLat: -6.215490,
+		FromLon: 53.327672,
+	}
+	nodes, err = getNodes(options.sanitize())
+	if err != nil {
+		t.Errorf("got an error: %v", err)
+	}
+
+	for _, node := range nodes {
+		if node.ExternalId == deactivatedNodeId {
+			t.Errorf("Got deactivated node in normal search results")
+		}
+
+	}
+}

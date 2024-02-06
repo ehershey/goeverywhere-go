@@ -268,9 +268,6 @@ func getNodes(roptions GetNodesOptions) ([]node, error) {
 	if roptions.AllowIgnored == false {
 		ands = append(ands, bson.M{"ignored": bson.M{"$ne": true}})
 	}
-	// no deactivated nodes
-	//
-	ands = append(ands, bson.M{"deactivated": bson.M{"$ne": true}})
 
 	// Can make this more interesting later.. for now only even acknowledge
 	// deactivated nodes exist if searching for a specific one by ID
