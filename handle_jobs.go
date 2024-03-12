@@ -66,7 +66,6 @@ func HandleOneJob() error {
 		return wrappedErr
 	}
 	log.Printf("about to execute job: %v\n", job)
-	// cmd := exec.Command("sudo", "-u", "ernie", "/home/ernie/Dropbox/Misc/new_strava_activity.sh", scriptparm)
 	cmd := exec.Command(command_argv0,
 		fmt.Sprintf("min_lat=%f", job.MinLat),
 		fmt.Sprintf("max_lat=%f", job.MaxLat),
