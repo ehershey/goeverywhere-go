@@ -16,7 +16,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 128
+const autoupdate_version = 129
 
 var routes []string
 
@@ -65,6 +65,7 @@ func serve() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", sentryHandler.HandleFunc(index))
 	r.Handle("/nodes", sentryHandler.Handle(GetNodesHandlerWithTiming))
+	r.Handle("/stats", sentryHandler.Handle(GetStatsHandlerWithTiming))
 	r.Handle("/refresh_nodes", sentryHandler.Handle(RefreshNodesHandlerWithTiming))
 	r.Handle("/ignore_nodes", sentryHandler.Handle(IgnoreNodesHandlerWithTiming))
 	r.HandleFunc("/points", sentryHandler.HandleFunc(GetNodesHandler))
