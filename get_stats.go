@@ -6,14 +6,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
-	"strings"
 	"time"
 
 	servertiming "github.com/mitchellh/go-server-timing"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const stats_collection_name = "gps_log"
@@ -43,9 +42,11 @@ func GetStatsHandler(w http.ResponseWriter, r *http.Request) {
 	// //return strings.Trim(strings.Join(strings.Split(fmt.Sprint(a), " "), delim), "[]")
 	// //return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(a)), delim), "[]")
 	// }
-	stats, err := getStats(&StatsRequest{})
+	req := StatsRequest{}
+	stats, err := getStats(&req)
+
 	if err != nil {
-		log.Println("got an error getting stats:", err)
+		log.Printf("Got an error calling getStats(&req): %v\n", err)
 		return
 	}
 
@@ -55,151 +56,104 @@ func GetStatsHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func getStats(req StatsRequest) (StatsResponse, error) {
+func getStats(req *StatsRequest) (*StatsResponse, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), default_timeout_seconds*time.Second)
 	defer cancel()
 
-	client, collection, err := getNodesCollection()
+	client, collection, err := getStatsCollection()
 	if err != nil {
-		log.Println("got an error:", err)
-		return nil, err
+		wrappedErr := fmt.Errorf("got an error calling getStatsCollection(): %w", err)
+		return nil, wrappedErr
 	}
+
 	defer client.Disconnect(ctx)
+
+	log.Println("got db client and collection ref")
 
 	find_opts := options.FindOne()
 	// find_opts.SetLimit(1)
 	find_opts.SetSort(bson.D{{"entry_date", 1}})
-	query := bson.M{"entry_date": bson.M{"$exists": true}}
+	//query := bson.M{"entry_date": bson.M{"$exists": true}}
+	query := bson.M{}
+	log.Printf("query: %v\n", query)
 
-	oldest_point_timestamp := 0
-
+	var oldestPoint gps_log_point
 	err = collection.FindOne(ctx, query, find_opts).Decode(&oldestPoint)
+
 	if err != nil {
-		log.Println("got an error:", err)
-		return nil, err
+		wrappedErr := fmt.Errorf("got an error calling collection.FindOne(...) for oldest point: %w", err)
+		return nil, wrappedErr
 	}
+
+	log.Printf("oldestPoint: %v\n", oldestPoint)
 
 	oldestPointTimestamp := oldestPoint.GetEntryDate()
 
+	log.Printf("oldestPointTimestamp: %v\n", oldestPointTimestamp)
+
 	find_opts.SetSort(bson.D{{"entry_date", -1}})
 
+	var newestPoint gps_log_point
 	err = collection.FindOne(ctx, query, find_opts).Decode(&newestPoint)
+
 	if err != nil {
-		log.Println("got an error:", err)
-		return nil, err
+		wrappedErr := fmt.Errorf("got an error calling collection.FindOne(...) for newest point: %w", err)
+		return nil, wrappedErr
 	}
+	log.Printf("newestPoint: %v\n", oldestPoint)
 
 	newestPointTimestamp := newestPoint.GetEntryDate()
 
-	PointCount := collection.EstimatedDocumentCount(ctx)
+	log.Printf("newestPointTimestamp: %v\n", newestPointTimestamp)
 
-	response = &stats_pb2.StatsResponse{
-		OldestPointTimestamp: oldestPointTimestamp,
-		NewestPointTimestamp: newestPointTimestamp,
-		PointCount:           PointCount,
+	PointCount, err := collection.EstimatedDocumentCount(ctx)
+
+	log.Printf("PointCount: %v\n", PointCount)
+
+	if err != nil {
+		wrappedErr := fmt.Errorf("error getting PoiintCount: %w", err)
+		return nil, wrappedErr
+	}
+
+	filter := bson.D{{}}
+	distinct, err := collection.Distinct(ctx, "entry_source", filter)
+
+	log.Printf("distinct: %v\n", distinct)
+
+	EntrySources := []string{}
+
+	for _, result := range distinct {
+		EntrySources = append(EntrySources, result.(string))
+	}
+	log.Printf("EntrySources: %v\n", EntrySources)
+
+	if err != nil {
+		wrappedErr := fmt.Errorf("got an error getting entry sources: %w", err)
+		return nil, wrappedErr
+	}
+
+	response := &StatsResponse{
+		OldestPointTimestamp: timestamppb.New(oldestPointTimestamp),
+		NewestPointTimestamp: timestamppb.New(newestPointTimestamp),
+		PointCount:           uint32(PointCount),
 		EntrySources:         EntrySources,
 	}
+	log.Printf("response: %v\n", response)
 
-	var ands []bson.M
+	return response, nil
+}
 
-	if roptions.NodeId != 0 {
-		ands = append(ands, bson.M{"external_id": roptions.NodeId})
-	}
+type gps_log_point struct {
+	Entry_source string    `json:"entry_source"`
+	Altitude     float32   `json:"altitude"`
+	Speed        float32   `json:"speed"`
+	Entry_date   time.Time `json:"entry_date"`
+	Loc          geometry  `json:"loc"`
+	ActivityType string    `json:"activityType"`
+	Elevation    float32   `json:"elevation,omitempty"`
+}
+type geometry struct{}
 
-	if roptions.FromLat != 0 && roptions.FromLon != 0 && roptions.FromLat != -1 && roptions.FromLon != -1 {
-		coords := make([]float64, 2)
-		coords[0] = roptions.FromLon
-		coords[1] = roptions.FromLat
-		current_location := point{Type: "Point", Coordinates: coords}
-		// var loc_doc []bson.M
-		var loc_doc bson.D
-		loc_doc = append(loc_doc, bson.E{Key: "$near", Value: current_location})
-
-		if roptions.MaxDistance > 0 {
-			// near_query["loc"].(map[string]interface{})["$maxDistance"] = roptions.MaxDistance
-			//near_query["loc"].(bson.D)["$maxDistance"] = roptions.MaxDistance
-			loc_doc = append(loc_doc, bson.E{Key: "$maxDistance", Value: roptions.MaxDistance})
-		}
-		near_query := bson.M{"loc": loc_doc}
-
-		ands = append(ands, near_query)
-	}
-
-	if roptions.MinLon != 0 || roptions.MinLat != 0 || roptions.MaxLon != 0 || roptions.MaxLat != 0 {
-		box_query := bson.M{"loc": bson.M{"$geoIntersects": bson.M{"$geometry": bson.M{"type": "Polygon",
-			"coordinates": bson.A{bson.A{bson.A{roptions.MinLon,
-				roptions.MinLat},
-				bson.A{roptions.MinLon,
-					roptions.MaxLat},
-				bson.A{roptions.MaxLon,
-					roptions.MaxLat},
-				bson.A{roptions.MaxLon,
-					roptions.MinLat},
-				bson.A{roptions.MinLon,
-					roptions.MinLat}}},
-		},
-		},
-		},
-		}
-
-		ands = append(ands, box_query)
-	}
-
-	// Fields generally only present in db when == true
-	// defaults are to return only priority nodes that aren't ignored
-	if roptions.AllowIgnored == false {
-		ands = append(ands, bson.M{"ignored": bson.M{"$ne": true}})
-	}
-
-	// Can make this more interesting later.. for now only even acknowledge
-	// deactivated nodes exist if searching for a specific one by ID
-	//
-	if roptions.NodeId == 0 {
-		ands = append(ands, bson.M{"deactivated": bson.M{"$ne": true}})
-	}
-
-	if roptions.RequirePriority == true {
-		ands = append(ands, bson.M{"priority": true})
-	}
-
-	if len(roptions.Exclude) > 0 {
-		exclude_array := make([]int64, 0)
-		for _, exclude_id := range strings.Split(roptions.Exclude, "|") {
-			var exclude_id_int int64
-			if exclude_id_int, err = strconv.ParseInt(exclude_id, 10, 64); err != nil {
-				return nil, fmt.Errorf("Error parsing exclude id into int64: %w", err)
-			}
-			exclude_array = append(exclude_array, exclude_id_int)
-		}
-
-		exclude_query := bson.M{"external_id": bson.M{"$nin": exclude_array}}
-		ands = append(ands, exclude_query)
-	}
-
-	// query := bson.E{Key: "$and", Value: ands}
-	query := bson.M{}
-	if len(ands) > 0 {
-		query["$and"] = ands
-	}
-
-	// log.Println("ands:", ands)
-	// log.Println("query:", query)
-
-	// query = bson.M{"$and": []bson.M{bson.M{"storyID": 123}, bson.M{"parentID": 432}}}
-	find_opts := options.Find()
-	find_opts.SetLimit(int64(roptions.Limit))
-
-	var nodes []node
-
-	cursor, err := collection.Find(ctx, query, find_opts)
-	if err != nil {
-		log.Println("got an error:", err)
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-	if err = cursor.All(ctx, &nodes); err != nil {
-		return nil, err
-	}
-
-	return nodes, nil
+func (point *gps_log_point) GetEntryDate() time.Time {
+	return point.Entry_date
 }

@@ -11,7 +11,6 @@ require (
 	github.com/gorilla/schema v1.2.0
 	github.com/kellydunn/golang-geo v0.7.0
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/kr/pretty v0.3.1 // indirect
 	github.com/kylelemons/go-gypsy v1.0.0 // indirect
 	github.com/lib/pq v1.9.0 // indirect
 	github.com/mitchellh/go-server-timing v1.0.1
@@ -19,6 +18,6 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.mongodb.org/mongo-driver v1.4.5
-	golang.org/x/crypto v0.17.0 // indirect
-	golang.org/x/net v0.17.0 // indirect
+	google.golang.org/grpc v1.63.2
+	google.golang.org/protobuf v1.33.0
 )

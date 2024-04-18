@@ -137,7 +137,7 @@ func GetNodesHandler(w http.ResponseWriter, r *http.Request) {
 	// }
 	nodes, err := getNodes(roptions.sanitize())
 	if err != nil {
-		log.Println("got an error:", err)
+		log.Println("got an error calling getNodes(roptions.sanitize()):", err)
 		return
 	}
 

@@ -1,5 +1,5 @@
-.PHONY: release test deploy run
-goe: *.go */*.go
+.PHONY: release test deploy run gen
+goe: *.go */*.go stats.pb.go stats_grpc.pb.go
 	go build
 
 run: goe
@@ -15,7 +15,7 @@ test: *.go db.created
 
 test.success: test
 
-db.created:
+db.created: scripts/loadData.js scripts/setup_empty_db.sh
 	scripts/setup_empty_db.sh
 
 deploy: goe.linux goe
@@ -29,3 +29,6 @@ deploy: goe.linux goe
 
 install: goe
 	sudo install ./goe /usr/local/bin/goe
+
+gen: ../goeverywhere/grpcify/stats.proto
+	protoc --go_out=. --go_opt=paths=source_relative     --go-grpc_out=. --go-grpc_opt=paths=source_relative     ../goeverywhere/grpcify/stats.proto  --proto_path ../goeverywhere/grpcify/

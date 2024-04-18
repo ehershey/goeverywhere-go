@@ -1044,4 +1044,24 @@ nodes = [{"_id":{"$oid":"5fe39391d28eaaaced9757a7"},"creation_date":{"$date":"20
 
 ];
 
+
+/* 
+  mongoexport  --db ernie_org --collection gps_log --limit 1 --sort '{_id: -1}'
+  mongoexport  --db ernie_org --collection gps_log --limit 1 --sort '{_id: 1}'
+  mongoexport  --db ernie_org --collection gps_log --limit 1 --sort '{_id: -1}' --query '{ "entry_source": { "$ne": "goeverywhere.ernie.org" }}'
+  mongoexport  --db ernie_org --collection gps_log --limit 1 --sort '{_id: -1}' --query '{ "entry_source": { "$nin": [ "goeverywhere.ernie.org", "Overland (eah13m)"] }}'
+  mongoexport  --db ernie_org --collection gps_log --limit 1 --sort '{_id: -1}' --query '{ "entry_source": { "$nin": [ "goeverywhere.ernie.org", "Overland (eah13m)", "Arc GPX"] }}'
+ */
+
+gps_log = [
+  {"_id":{"$oid":"66206e9a5e947eb43dddd44d"},"entry_date":{"$date":"2024-04-18T00:51:37.945Z"},"loc":{"type":"Point","coordinates":[-74.00048467913739,40.7606361762849]},"entry_source":"goeverywhere.ernie.org","accuracy":88.0},
+  {"_id":1,"loc":{"type":"Point","coordinates":[-73.9925308227539,40.76385498046875]},"entry_date":{"$date":"2006-06-27T03:59:05Z"},"last_update":{"$date":"2006-06-27T03:59:05Z"},"entry_source":"soap.ernie.org","previous_point_distance":25.0,"previous_point_count":0.0},
+  {"_id":{"$oid":"6620539e6de1ba8629140017"},"entry_source":"Overland (eah13m)","altitude":116.0,"speed":-1.0,"entry_date":{"$date":"2024-04-17T22:46:30Z"},"loc":{"coordinates":[-74.0005603,40.7607444],"type":"Point"},"activitytype":"","elevation":0.0},
+  {"_id":{"$oid":"661ff63fd797ac5431784665"},"entry_date":{"$date":"2024-04-17T14:57:37Z"},"entry_source":"Arc GPX","loc":{"type":"Point","coordinates":[-74.0000154445403,40.760948883054446]}},
+  {"_id":{"$oid":"661fe33e17417333a67e723a"},"entry_source":"Garmin Livetrack","altitude":14.119999885559082,"speed":1.75,"entry_date":{"$date":"2024-04-17T14:55:50Z"},"loc":{"type":"Point","coordinates":[-73.99894759990275,40.76096856035292]},"activitytype":"RUNNING","elevation":14.119999885559082},
+
+];
+
 nodes.forEach(obj => { obj._id = ObjectId(obj._id['$oid']); obj.creation_date = new Date(obj.creation_date['$date']); print(db.nodes.insert(obj))})
+gps_log.forEach(obj => { if(typeof(obj._id) === "object") { obj._id = ObjectId(obj._id['$oid']); } ; obj.entry_date = new Date(obj.entry_date['$date']); print(db.gps_log.insert(obj))})
+
