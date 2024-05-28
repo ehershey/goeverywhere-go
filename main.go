@@ -19,7 +19,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 170
+const autoupdate_version = 176
 
 var routes []string
 
@@ -53,7 +53,7 @@ func main() {
 	nodeId := browseCommand.Arg("nodeId", "Node ID to browse to").Required().Int()
 
 	serveCommand := app.Command("serve", "Run backend code.").Default()
-	handleJobs := serveCommand.Flag("handle-jobs", "Run background jobs (default)").Bool()
+	handleJobs := serveCommand.Flag("handle-jobs", "Run background jobs (default)").Default("true").Bool()
 
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case browseCommand.FullCommand():
@@ -103,6 +103,7 @@ func serve(handleJobs bool) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Printf("Version: %d\n", autoupdate_version)
 	log.Println("config:")
 	log.Printf("HTTPListenAddr: %v\n", config.HTTPListenAddr)
 	log.Printf("GRPCListenAddr: %v\n", config.GRPCListenAddr)
