@@ -97,7 +97,7 @@ func getStats(ctx context.Context, req *proto.StatsRequest) (*proto.StatsRespons
 	log.Printf("oldestPointTimestamp: %v\n", oldestPointTimestamp)
 
 	newest_find_opts := options.FindOne()
-	newest_sort := bson.D{{"entry_date", -1}}
+	newest_sort := bson.D{{Key: "entry_date", Value: -1}}
 	newest_find_opts.SetSort(newest_sort)
 
 	log.Printf("newest_sort: %v\n", newest_sort)
