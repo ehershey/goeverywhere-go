@@ -1,5 +1,5 @@
 .PHONY: release test deploy run gen
-goe: *.go */*.go stats.pb.go stats_grpc.pb.go
+goe: *.go */*.go proto/stats.pb.go proto/stats_grpc.pb.go
 	go build
 
 run: goe
@@ -31,4 +31,4 @@ install: goe
 	sudo install ./goe /usr/local/bin/goe
 
 gen: ../goeverywhere/grpcify/stats.proto
-	protoc --go_out=. --go_opt=paths=source_relative     --go-grpc_out=. --go-grpc_opt=paths=source_relative     ../goeverywhere/grpcify/stats.proto  --proto_path ../goeverywhere/grpcify/
+	protoc --go_out=./proto --go_opt=paths=source_relative     --go-grpc_out=./proto --go-grpc_opt=paths=source_relative     ../goeverywhere/grpcify/stats.proto  --proto_path ../goeverywhere/grpcify/

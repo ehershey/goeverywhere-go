@@ -1,14 +1,20 @@
 package main
 
 import (
+	"context"
 	"testing"
+	"time"
+
+	"ernie.org/goe/proto"
 )
 
 func TestGetStats(t *testing.T) {
-	request := StatsRequest{}
-	stats, err := getStats(&request)
+	request := proto.StatsRequest{}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	stats, err := getStats(ctx, &request)
 	if err != nil {
-		t.Errorf("got an error calling getStats(&request): %v", err)
+		t.Errorf("got an error calling getStats(ctx, &request): %v", err)
 	}
 
 	if len(stats.EntrySources) < 5 {

@@ -4,7 +4,7 @@
 // - protoc             v5.26.1
 // source: stats.proto
 
-package main
+package proto
 
 import (
 	context "context"

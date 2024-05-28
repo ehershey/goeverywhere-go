@@ -1,22 +1,25 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	"ernie.org/goe/cmd"
+	"ernie.org/goe/proto"
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/getsentry/sentry-go"
 	sentryhttp "github.com/getsentry/sentry-go/http"
+	grpc "google.golang.org/grpc"
 
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 129
+const autoupdate_version = 170
 
 var routes []string
 
@@ -45,21 +48,24 @@ func main() {
 
 	app.Version(version())
 	app.HelpFlag.Short('h')
+
 	browseCommand := app.Command("browse", "Open a browser browsing the given node id.")
 	nodeId := browseCommand.Arg("nodeId", "Node ID to browse to").Required().Int()
 
 	serveCommand := app.Command("serve", "Run backend code.").Default()
+	handleJobs := serveCommand.Flag("handle-jobs", "Run background jobs (default)").Bool()
+
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case browseCommand.FullCommand():
 		cmd.Browse(*nodeId)
 	case serveCommand.FullCommand():
-		serve()
+		serve(*handleJobs)
 	default:
-		serve()
+		serve(*handleJobs)
 	}
 
 }
-func serve() {
+func serve(handleJobs bool) {
 	sentryHandler := sentryhttp.New(sentryhttp.Options{})
 
 	r := mux.NewRouter()
@@ -87,17 +93,36 @@ func serve() {
 		log.Fatal(err)
 	}
 
-	go HandleJobs()
+	if handleJobs {
+		log.Println("Starting job handler background goroutine")
+		go HandleJobs()
+	} else {
+		log.Println("Skipping job handler background goroutine")
+	}
 	config, err := GetConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Println("config:")
-	log.Println("ListenPort: ", config.ListenPort)
-	log.Println("DB_Name: ", config.DB_Name)
-	log.Println("MongoDB_Uri: ", config.MongoDB_Uri)
-	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(config.ListenPort), r)) // Run Server
+	log.Printf("HTTPListenAddr: %v\n", config.HTTPListenAddr)
+	log.Printf("GRPCListenAddr: %v\n", config.GRPCListenAddr)
+	log.Printf("DB_Name: %v\n", config.DB_Name)
+	log.Printf("MongoDB_Uri: %v\n", config.MongoDB_Uri)
 
+	go func() {
+		log.Printf("Starting HTTP listener on: %v", config.HTTPListenAddr) // Run Server
+		log.Fatal(http.ListenAndServe(config.HTTPListenAddr, r))
+	}()
+
+	log.Printf("Starting GRPC listener on: %v", config.GRPCListenAddr)
+	lis, err := net.Listen("tcp", config.GRPCListenAddr)
+	if err != nil {
+		log.Fatalf("failed to start GRPC listener: %v", err)
+	}
+	var opts []grpc.ServerOption
+	grpcServer := grpc.NewServer(opts...)
+	proto.RegisterGOEServer(grpcServer, newServer())
+	grpcServer.Serve(lis)
 }
 
 func echo(w http.ResponseWriter, r *http.Request) {
@@ -117,4 +142,26 @@ func VersionHandler(w http.ResponseWriter, r *http.Request) {
 
 func version() string {
 	return fmt.Sprintf("%d", autoupdate_version)
+}
+
+func newServer() *gOEServer {
+	s := &gOEServer{myContext: context.Background()}
+	return s
+}
+
+type gOEServer struct {
+	proto.UnimplementedGOEServer
+	myContext context.Context
+}
+
+func (s *gOEServer) GetStats(ctx context.Context, request *proto.StatsRequest) (*proto.StatsResponse, error) {
+
+	response, err := getStats(ctx, request)
+
+	if err != nil {
+		wrappedErr := fmt.Errorf("Error calling getStats() in grpc method: %w", err)
+		return response, wrappedErr
+	}
+
+	return response, nil
 }

@@ -1045,7 +1045,7 @@ nodes = [{"_id":{"$oid":"5fe39391d28eaaaced9757a7"},"creation_date":{"$date":"20
 ];
 
 
-/* 
+/*
   mongoexport  --db ernie_org --collection gps_log --limit 1 --sort '{_id: -1}'
   mongoexport  --db ernie_org --collection gps_log --limit 1 --sort '{_id: 1}'
   mongoexport  --db ernie_org --collection gps_log --limit 1 --sort '{_id: -1}' --query '{ "entry_source": { "$ne": "goeverywhere.ernie.org" }}'
