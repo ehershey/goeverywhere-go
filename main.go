@@ -19,7 +19,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 181
+const autoupdate_version = 202
 
 var routes []string
 
@@ -53,6 +53,8 @@ func main() {
 	nodeId := browseCommand.Arg("nodeId", "Node ID to browse to").Required().Int()
 
 	serveCommand := app.Command("serve", "Run backend code.").Default()
+	versionCommand := app.Command("version", "Display program version.")
+	short := versionCommand.Flag("short", "Use short format").Default("false").Bool()
 	handleJobs := serveCommand.Flag("handle-jobs", "Run background jobs (default)").Default("true").Bool()
 
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
@@ -60,6 +62,12 @@ func main() {
 		cmd.Browse(*nodeId)
 	case serveCommand.FullCommand():
 		serve(*handleJobs)
+	case versionCommand.FullCommand():
+		if *short {
+			println(shortVersion())
+		} else {
+			println(version())
+		}
 	default:
 		serve(*handleJobs)
 	}
@@ -138,21 +146,21 @@ func index(w http.ResponseWriter, r *http.Request) {
 }
 
 func VersionHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, version())
+	fmt.Fprint(w, shortVersion())
 }
 
 func version() string {
-	return fmt.Sprintf("main: %d\nBuild time: %v\nGit commit: %v, Go Version: %v", autoupdate_version, BuildTime, CommitHash, GoVersion)
+	return fmt.Sprintf("main: %d\nBuild time: %v\nGit commit: %v\nGo Version: %v", autoupdate_version, BuildTime, CommitHash, GoVersion)
+}
+func shortVersion() string {
+	return fmt.Sprintf("%d.%v.%v", autoupdate_version, BuildTime, CommitHash)
 }
 
 // build flags
-// https://stackoverflow.com/questions/53031035/generate-build-timestamp-in-go
-var (
-	BuildTime  string
-	CommitHash string
-	GoVersion  string
-	GitTag     string
-)
+var BuildTime = "Unspecified"
+
+var CommitHash = "Unspecified"
+var GoVersion = "Unspecified"
 
 func newServer() *gOEServer {
 	s := &gOEServer{myContext: context.Background()}
