@@ -1,12 +1,15 @@
 [Unit]
 Description = Goeverywhere backend
 [Service]
+# https://serverfault.com/a/1110783/163080
+Restart=on-failure
+RestartSec=10
+
 EnvironmentFile=-/etc/default/goe
 PrivateTmp=false
 ExecStart=/usr/local/bin/goe
 User=goe
 Group=goe
 SyslogIdentifier=goe
-Restart=on-failure
 [Install]
 WantedBy=default.target
