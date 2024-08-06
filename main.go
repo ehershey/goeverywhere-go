@@ -19,7 +19,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 176
+const autoupdate_version = 181
 
 var routes []string
 
@@ -142,8 +142,17 @@ func VersionHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func version() string {
-	return fmt.Sprintf("%d", autoupdate_version)
+	return fmt.Sprintf("main: %d\nBuild time: %v\nGit commit: %v, Go Version: %v", autoupdate_version, BuildTime, CommitHash, GoVersion)
 }
+
+// build flags
+// https://stackoverflow.com/questions/53031035/generate-build-timestamp-in-go
+var (
+	BuildTime  string
+	CommitHash string
+	GoVersion  string
+	GitTag     string
+)
 
 func newServer() *gOEServer {
 	s := &gOEServer{myContext: context.Background()}

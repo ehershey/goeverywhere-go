@@ -30,5 +30,11 @@ deploy: goe.linux goe
 install: goe
 	sudo install ./goe /usr/local/bin/goe
 
-gen: ../goeverywhere/grpcify/stats.proto
+gen: ../goeverywhere/grpcify/stats.proto /opt/homebrew/bin/protoc-gen-go-grpc /opt/homebrew/bin/protoc-gen-go
 	protoc --go_out=./proto --go_opt=paths=source_relative     --go-grpc_out=./proto --go-grpc_opt=paths=source_relative     ../goeverywhere/grpcify/stats.proto  --proto_path ../goeverywhere/grpcify/
+
+/opt/homebrew/bin/protoc-gen-go:
+	brew install protoc-gen-go
+
+/opt/homebrew/bin/protoc-gen-go-grpc:
+	brew install protoc-gen-go-grpc
