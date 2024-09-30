@@ -1,5 +1,6 @@
 goe
 goe.linux
+goe.linux.*
 goe.test
 .DS_Store
 test.success
