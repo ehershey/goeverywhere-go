@@ -3,6 +3,7 @@ module ernie.org/goe
 go 1.22.5
 
 require (
+	connectrpc.com/connect v1.17.0
 	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/getsentry/sentry-go v0.29.0
 	github.com/gorilla/mux v1.8.1
