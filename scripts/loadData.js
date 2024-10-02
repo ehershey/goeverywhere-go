@@ -1059,6 +1059,7 @@ gps_log = [
   {"_id":{"$oid":"6620539e6de1ba8629140017"},"entry_source":"Overland (eah13m)","altitude":116.0,"speed":-1.0,"entry_date":{"$date":"2024-04-17T22:46:30Z"},"loc":{"coordinates":[-74.0005603,40.7607444],"type":"Point"},"activitytype":"","elevation":0.0},
   {"_id":{"$oid":"661ff63fd797ac5431784665"},"entry_date":{"$date":"2024-04-17T14:57:37Z"},"entry_source":"Arc GPX","loc":{"type":"Point","coordinates":[-74.0000154445403,40.760948883054446]}},
   {"_id":{"$oid":"661fe33e17417333a67e723a"},"entry_source":"Garmin Livetrack","altitude":14.119999885559082,"speed":1.75,"entry_date":{"$date":"2024-04-17T14:55:50Z"},"loc":{"type":"Point","coordinates":[-73.99894759990275,40.76096856035292]},"activitytype":"RUNNING","elevation":14.119999885559082},
+    /* THIS MUST BE LAST */ { "_id": {"$oid":"66fd2c6e39a83ad81896a334"}, "entry_date": { "$date": "2024-10-02T11:20:14.001Z"}, "loc": { "type": "Point", "coordinates": [ 13.380557784156606, 52.523970843612695 ] }, "entry_source": "goeverywhere.ernie.org", "velocity": 0, "accuracy": 14.245954590575272, "altitude_accuracy": 3, "altitude": 35.75654497835785 }
 
 ];
 
