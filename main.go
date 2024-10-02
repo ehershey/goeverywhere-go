@@ -25,7 +25,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 244
+const autoupdate_version = 256
 
 var routes []string
 
@@ -82,7 +82,11 @@ func main() {
 func serve(handleJobs bool) {
 	sentryHandler := sentryhttp.New(sentryhttp.Options{})
 
+	GRPCPath, GRPCHandler := protoconnect.NewGOEHandler(newServer())
+	log.Printf("GRPCPath: %v\n", GRPCPath)
+
 	r := mux.NewRouter()
+	r.Handle("/GOE/{method}", sentryHandler.Handle(GRPCHandler))
 	r.HandleFunc("/", sentryHandler.HandleFunc(index))
 	r.Handle("/nodes", sentryHandler.Handle(GetNodesHandlerWithTiming))
 	r.Handle("/stats", sentryHandler.Handle(GetStatsHandlerWithTiming))
@@ -94,11 +98,13 @@ func serve(handleJobs bool) {
 	r.HandleFunc("/kv", sentryHandler.HandleFunc(KeyValueHandler))
 	r.HandleFunc("/version", sentryHandler.HandleFunc(VersionHandler))
 
+	// store routes array for index requests to /
 	err := r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
 		pathTemplate, err := route.GetPathTemplate()
 		if err != nil {
 			log.Fatal(err)
 		}
+		log.Printf("pathTemplate: %v\n", pathTemplate)
 
 		routes = append(routes, pathTemplate)
 		return nil
@@ -126,15 +132,16 @@ func serve(handleJobs bool) {
 
 	go func() {
 		log.Printf("Starting HTTP listener on: %v", config.HTTPListenAddr)
-		err = http.ListenAndServe(config.HTTPListenAddr, r)
+		err = http.ListenAndServe(config.HTTPListenAddr, h2c.NewHandler(r, &http2.Server{}))
 		if err != nil {
 			log.Fatalf("failed to start HTTP listener: %v", err)
 		}
 	}()
 
 	grpc_mux := http.NewServeMux()
-	path, handler := protoconnect.NewGOEHandler(newServer())
-	grpc_mux.Handle(path, handler)
+	//path, handler := protoconnect.NewGOEHandler(newServer())
+	//log.Printf("path: %v\n", path)
+	grpc_mux.Handle(GRPCPath, GRPCHandler)
 
 	log.Printf("Starting GRPC listener on: %v", config.GRPCListenAddr)
 	err = http.ListenAndServe(
