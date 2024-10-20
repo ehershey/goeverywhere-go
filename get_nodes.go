@@ -49,7 +49,7 @@ type GetNodesOptions struct {
 	NodeId          int `schema:"node_id"`
 }
 
-type point struct {
+type Point struct {
 	Type        string    `json:"type"`
 	Coordinates []float64 `json:"coordinates"`
 }
@@ -57,7 +57,7 @@ type point struct {
 type Node struct {
 	Id              primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
 	CreationDate    time.Time          `bson:"creation_date" json:"creation_date"`
-	Loc             point              `bson:"loc" json:"loc"`
+	Loc             Point              `bson:"loc" json:"loc"`
 	ExternalId      int                `bson:"external_id,omitempty" json:"external_id"`
 	Priority        bool               `bson:"priority" json:"priority"`
 	Ignored         bool               `bson:"ignored" json:"ignored"`
@@ -228,7 +228,7 @@ func getNodes(roptions GetNodesOptions) ([]Node, error) {
 		coords := make([]float64, 2)
 		coords[0] = roptions.FromLon
 		coords[1] = roptions.FromLat
-		current_location := point{Type: "Point", Coordinates: coords}
+		current_location := Point{Type: "Point", Coordinates: coords}
 		// var loc_doc []bson.M
 		var loc_doc bson.D
 		loc_doc = append(loc_doc, bson.E{Key: "$near", Value: current_location})
