@@ -54,7 +54,7 @@ type point struct {
 	Coordinates []float64 `json:"coordinates"`
 }
 
-type node struct {
+type Node struct {
 	Id              primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
 	CreationDate    time.Time          `bson:"creation_date" json:"creation_date"`
 	Loc             point              `bson:"loc" json:"loc"`
@@ -69,10 +69,10 @@ type node struct {
 	Deactivated     bool               `bson:"deactivated" json:"deactivated"`
 }
 
-func (n *node) GetLat() float64 {
+func (n *Node) GetLat() float64 {
 	return n.Loc.Coordinates[1]
 }
-func (n *node) GetLon() float64 {
+func (n *Node) GetLon() float64 {
 	return n.Loc.Coordinates[0]
 }
 
@@ -89,7 +89,7 @@ type getNodesResponse struct {
 	Limit       int     `json:"limit"`
 	MaxDistance float64 `json:"max_distance"`
 	Setsize     int     `json:"setsize"`
-	Points      []node  `json:"points"`
+	Points      []Node  `json:"points"`
 }
 
 var decoder = schema.NewDecoder()
@@ -200,7 +200,7 @@ func getTotalCount() (int64, error) {
 	return collection.EstimatedDocumentCount(ctx)
 }
 
-func getNodes(roptions GetNodesOptions) ([]node, error) {
+func getNodes(roptions GetNodesOptions) ([]Node, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), default_timeout_seconds*time.Second)
 	defer cancel()
 
@@ -307,7 +307,7 @@ func getNodes(roptions GetNodesOptions) ([]node, error) {
 	find_opts := options.Find()
 	find_opts.SetLimit(int64(roptions.Limit))
 
-	var nodes []node
+	var nodes []Node
 
 	cursor, err := collection.Find(ctx, query, find_opts)
 	if err != nil {

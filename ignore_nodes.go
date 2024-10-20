@@ -34,7 +34,7 @@ type IgnoreNodesOptions struct {
 
 // IgnoreNodesResponse is a response from ignoring nodes
 // It's just the new full node
-type IgnoreNodesResponse node
+type IgnoreNodesResponse Node
 
 // IgnoreNodesHandlerWithTiming wraps our handler with
 // the server timing middleware
