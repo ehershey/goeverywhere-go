@@ -1,4 +1,4 @@
-.PHONY: release test deploy run gen
+.PHONY: release test deploy run gen clean
 
 BUILD_TIME = $(shell date +"%Y-%m-%d %H:%M:%S")
 COMMIT_HASH = $(shell git log -1 --pretty=format:%h)
@@ -62,3 +62,6 @@ $(GOPATH)/bin/protoc-gen-connect-go:
 
 /opt/homebrew/bin/protoc-gen-go-grpc:
 	brew install protoc-gen-go-grpc
+
+clean:
+	rm goe
