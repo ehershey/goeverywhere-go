@@ -70,10 +70,19 @@ type Node struct {
 }
 
 func (n *Node) GetLat() float64 {
-	return n.Loc.Coordinates[1]
+	return n.Loc.GetLat()
 }
+
+func (p *Point) GetLat() float64 {
+	return p.Coordinates[1]
+}
+
 func (n *Node) GetLon() float64 {
-	return n.Loc.Coordinates[0]
+	return n.Loc.GetLon()
+}
+
+func (p *Point) GetLon() float64 {
+	return p.Coordinates[0]
 }
 
 type getNodesResponse struct {
