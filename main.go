@@ -27,7 +27,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 287
+const autoupdate_version = 298
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_SECS = 10
 const WRITE_TIMEOUT_SECS = 10
@@ -89,11 +89,11 @@ func main() {
 func serve(handleJobs bool) {
 	sentryHandler := sentryhttp.New(sentryhttp.Options{})
 
-	GRPCPath, GRPCHandler := protoconnect.NewGOEHandler(newServer())
+	GRPCPath, GRPCHandler := protoconnect.NewGOEServiceHandler(newServer())
 	log.Printf("GRPCPath: %v\n", GRPCPath)
 
 	r := mux.NewRouter()
-	r.Handle("/GOE/{method}", sentryHandler.Handle(GRPCHandler))
+	r.Handle("/GOEService/{method}", sentryHandler.Handle(GRPCHandler))
 	r.HandleFunc("/", sentryHandler.HandleFunc(index))
 	r.Handle("/nodes", sentryHandler.Handle(GetNodesHandlerWithTiming))
 	r.Handle("/stats", sentryHandler.Handle(GetStatsHandlerWithTiming))
@@ -156,7 +156,7 @@ func serve(handleJobs bool) {
 	}()
 
 	grpc_mux := http.NewServeMux()
-	//path, handler := protoconnect.NewGOEHandler(newServer())
+	//path, handler := protoconnect.NewGOEServiceHandler(newServer())
 	//log.Printf("path: %v\n", path)
 	grpc_mux.Handle(GRPCPath, GRPCHandler)
 
@@ -230,20 +230,36 @@ var BuildTime = "Unspecified"
 var CommitHash = "Unspecified"
 var GoVersion = "Unspecified"
 
-func newServer() *gOEServer {
-	s := &gOEServer{myContext: context.Background()}
+func newServer() *gOEServiceServer {
+	s := &gOEServiceServer{myContext: context.Background()}
 	return s
 }
 
-type gOEServer struct {
-	proto.UnimplementedGOEServer
+type gOEServiceServer struct {
+	//proto.UnimplementedGOEServiceServer
 	myContext context.Context
 }
 
-func (s *gOEServer) GetStats(
+func (s *gOEServiceServer) GetPoints(
 	ctx context.Context,
-	req *connect.Request[proto.StatsRequest],
-) (*connect.Response[proto.StatsResponse], error) {
+	req *connect.Request[proto.GetPointsRequest],
+) (*connect.Response[proto.GetPointsResponse], error) {
+	log.Println("Request headers: ", req.Header())
+	return nil, fmt.Errorf("Unimplemented")
+}
+
+func (s *gOEServiceServer) GetPolylines(
+	ctx context.Context,
+	req *connect.Request[proto.GetPolylinesRequest],
+) (*connect.Response[proto.GetPolylinesResponse], error) {
+	log.Println("Request headers: ", req.Header())
+	return nil, fmt.Errorf("Unimplemented")
+}
+
+func (s *gOEServiceServer) GetStats(
+	ctx context.Context,
+	req *connect.Request[proto.GetStatsRequest],
+) (*connect.Response[proto.GetStatsResponse], error) {
 	log.Println("Request headers: ", req.Header())
 
 	response, err := getStats(ctx, req.Msg)

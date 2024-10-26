@@ -5,11 +5,13 @@ COMMIT_HASH = $(shell git log -1 --pretty=format:%h)
 GO_VERSION = $(shell go version | cut -f3- -d\ )
 GOPATH = $(shell go env GOPATH)
 
+GEN_FILES = ( proto/stats.pb.go proto/stats_grpc.pb.go proto/polylines.pb.go proto/polylines_grpc.pb.go proto/goe_service.pb.go proto/goe_service_grpc.pb.go )
+
 FLAGS = -X \"main.BuildTime=$(BUILD_TIME)\"
 FLAGS += -X \"main.CommitHash=$(COMMIT_HASH)\"
 FLAGS += -X \"main.GoVersion=$(GO_VERSION)\"
 
-goe: *.go */*.go proto/stats.pb.go proto/stats_grpc.pb.go
+goe: *.go */*.go $(GEN_FILES)
 	go build -ldflags "$(FLAGS)"
 
 run: goe
@@ -51,8 +53,10 @@ deploy: goe.linux.arm64 goe.linux.amd64 goe
 install: goe
 	sudo install ./goe /usr/local/bin/goe
 
-gen: ../goeverywhere/grpcify/stats.proto $(GOPATH)/bin/protoc-gen-connect-go /opt/homebrew/bin/protoc-gen-go
-	protoc --go_out=./proto --go_opt=paths=source_relative --connect-go_out=./proto --connect-go_opt=paths=source_relative ../goeverywhere/grpcify/stats.proto --proto_path ../goeverywhere/grpcify/
+$(GEN_FILES): gen
+
+gen: ../goeverywhere/grpcify/*.proto $(GOPATH)/bin/protoc-gen-connect-go /opt/homebrew/bin/protoc-gen-go
+	protoc --go_out=./proto --go_opt=paths=source_relative --connect-go_out=./proto --connect-go_opt=paths=source_relative ../goeverywhere/grpcify/*.proto --proto_path ../goeverywhere/grpcify/
 
 $(GOPATH)/bin/protoc-gen-connect-go:
 	go install connectrpc.com/connect/cmd/protoc-gen-connect-go@latest

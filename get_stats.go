@@ -44,7 +44,7 @@ func GetStatsHandler(w http.ResponseWriter, r *http.Request) {
 	// //return strings.Trim(strings.Join(strings.Split(fmt.Sprint(a), " "), delim), "[]")
 	// //return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(a)), delim), "[]")
 	// }
-	req := proto.StatsRequest{}
+	req := proto.GetStatsRequest{}
 	stats, err := getStats(ctx, &req)
 
 	if err != nil {
@@ -58,7 +58,7 @@ func GetStatsHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func getStats(ctx context.Context, req *proto.StatsRequest) (*proto.StatsResponse, error) {
+func getStats(ctx context.Context, req *proto.GetStatsRequest) (*proto.GetStatsResponse, error) {
 	// ctx, cancel := context.WithTimeout(context.Background(), default_timeout_seconds*time.Second)
 	// defer cancel()
 
@@ -143,7 +143,7 @@ func getStats(ctx context.Context, req *proto.StatsRequest) (*proto.StatsRespons
 		return nil, wrappedErr
 	}
 
-	response := &proto.StatsResponse{
+	response := &proto.GetStatsResponse{
 		OldestPointTimestamp: timestamppb.New(oldestPointTimestamp),
 		NewestPointTimestamp: timestamppb.New(newestPointTimestamp),
 		PointCount:           uint32(PointCount),

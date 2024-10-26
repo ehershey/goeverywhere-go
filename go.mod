@@ -15,6 +15,7 @@ require (
 	github.com/spf13/cobra v1.8.1
 	go.mongodb.org/mongo-driver v1.17.0
 	golang.org/x/net v0.29.0
+	google.golang.org/genproto v0.0.0-20170918111702-1e559d0a00ee
 	google.golang.org/grpc v1.67.0
 	google.golang.org/protobuf v1.34.2
 )
@@ -24,6 +25,7 @@ require (
 	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/golang/gddo v0.0.0-20210115222349-20d68f94ee1f // indirect
+	github.com/golang/protobuf v1.5.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/klauspost/compress v1.17.10 // indirect

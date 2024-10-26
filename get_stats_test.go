@@ -9,7 +9,7 @@ import (
 )
 
 func TestGetStats(t *testing.T) {
-	request := proto.StatsRequest{}
+	request := proto.GetStatsRequest{}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	stats, err := getStats(ctx, &request)
@@ -23,7 +23,7 @@ func TestGetStats(t *testing.T) {
 }
 
 func TestElevationFloat(t *testing.T) {
-	request := proto.StatsRequest{}
+	request := proto.GetStatsRequest{}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	stats, err := getStats(ctx, &request)
