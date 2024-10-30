@@ -27,7 +27,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 298
+const autoupdate_version = 334
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_SECS = 10
 const WRITE_TIMEOUT_SECS = 10
@@ -137,6 +137,8 @@ func serve(handleJobs bool) {
 	log.Printf("GRPCListenAddr: %v\n", config.GRPCListenAddr)
 	log.Printf("DB_Name: %v\n", config.DB_Name)
 	log.Printf("MongoDB_Uri: %v\n", config.MongoDB_Uri)
+	log.Printf("Strava_MongoDB_Uri: %v\n", config.Strava_MongoDB_Uri)
+	log.Printf("Strava_DB_Name: %v\n", config.Strava_DB_Name)
 
 	srv := &http.Server{
 		Addr:         config.HTTPListenAddr,
@@ -243,24 +245,35 @@ type gOEServiceServer struct {
 func (s *gOEServiceServer) GetPoints(
 	ctx context.Context,
 	req *connect.Request[proto.GetPointsRequest],
-) (*connect.Response[proto.GetPointsResponse], error) {
-	log.Println("Request headers: ", req.Header())
-	return nil, fmt.Errorf("Unimplemented")
+	stream *connect.ServerStream[proto.GetPointsResponse]) error {
+	log.Println("GetPoints request headers: ", req.Header())
+	return fmt.Errorf("Unimplemented")
 }
 
 func (s *gOEServiceServer) GetPolylines(
 	ctx context.Context,
 	req *connect.Request[proto.GetPolylinesRequest],
-) (*connect.Response[proto.GetPolylinesResponse], error) {
-	log.Println("Request headers: ", req.Header())
-	return nil, fmt.Errorf("Unimplemented")
+	stream *connect.ServerStream[proto.GetPolylinesResponse]) error {
+	log.Println("GetPolylines request headers: ", req.Header())
+
+	for line := range getPolylines(ctx, req.Msg) {
+
+		if err := stream.Send(&line); err != nil {
+			wrappedErr := fmt.Errorf("Error sending res to stream: %w", err)
+			return wrappedErr
+		}
+		// to test streaming
+		//time.Sleep(200 * time.Millisecond)
+	}
+	log.Println("GetPolylines finished streaming results")
+	return nil
 }
 
 func (s *gOEServiceServer) GetStats(
 	ctx context.Context,
 	req *connect.Request[proto.GetStatsRequest],
 ) (*connect.Response[proto.GetStatsResponse], error) {
-	log.Println("Request headers: ", req.Header())
+	log.Println("GetStats request headers: ", req.Header())
 
 	response, err := getStats(ctx, req.Msg)
 

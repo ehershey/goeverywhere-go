@@ -1,6 +1,6 @@
 module ernie.org/goe
 
-go 1.22.5
+go 1.23.2
 
 require (
 	connectrpc.com/connect v1.17.0
@@ -16,7 +16,6 @@ require (
 	go.mongodb.org/mongo-driver v1.17.0
 	golang.org/x/net v0.29.0
 	google.golang.org/genproto v0.0.0-20170918111702-1e559d0a00ee
-	google.golang.org/grpc v1.67.0
 	google.golang.org/protobuf v1.34.2
 )
 
@@ -25,7 +24,7 @@ require (
 	github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/golang/gddo v0.0.0-20210115222349-20d68f94ee1f // indirect
-	github.com/golang/protobuf v1.5.0 // indirect
+	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/klauspost/compress v1.17.10 // indirect
@@ -43,5 +42,4 @@ require (
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
 	golang.org/x/text v0.18.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20240924160255-9d4c2d233b61 // indirect
 )

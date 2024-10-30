@@ -15,7 +15,7 @@ goe: *.go */*.go $(GEN_FILES)
 	go build -ldflags "$(FLAGS)"
 
 run: goe
-	./goe
+	./goe $(GOE_RUN_FLAGS)
 
 release: goe.linux.arm64 goe.linux.amd64
 

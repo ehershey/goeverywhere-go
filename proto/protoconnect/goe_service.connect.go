@@ -54,8 +54,8 @@ var (
 // GOEServiceClient is a client for the GOEService service.
 type GOEServiceClient interface {
 	GetStats(context.Context, *connect.Request[proto.GetStatsRequest]) (*connect.Response[proto.GetStatsResponse], error)
-	GetPolylines(context.Context, *connect.Request[proto.GetPolylinesRequest]) (*connect.Response[proto.GetPolylinesResponse], error)
-	GetPoints(context.Context, *connect.Request[proto.GetPointsRequest]) (*connect.Response[proto.GetPointsResponse], error)
+	GetPolylines(context.Context, *connect.Request[proto.GetPolylinesRequest]) (*connect.ServerStreamForClient[proto.GetPolylinesResponse], error)
+	GetPoints(context.Context, *connect.Request[proto.GetPointsRequest]) (*connect.ServerStreamForClient[proto.GetPointsResponse], error)
 }
 
 // NewGOEServiceClient constructs a client for the GOEService service. By default, it uses the
@@ -102,20 +102,20 @@ func (c *gOEServiceClient) GetStats(ctx context.Context, req *connect.Request[pr
 }
 
 // GetPolylines calls GOEService.GetPolylines.
-func (c *gOEServiceClient) GetPolylines(ctx context.Context, req *connect.Request[proto.GetPolylinesRequest]) (*connect.Response[proto.GetPolylinesResponse], error) {
-	return c.getPolylines.CallUnary(ctx, req)
+func (c *gOEServiceClient) GetPolylines(ctx context.Context, req *connect.Request[proto.GetPolylinesRequest]) (*connect.ServerStreamForClient[proto.GetPolylinesResponse], error) {
+	return c.getPolylines.CallServerStream(ctx, req)
 }
 
 // GetPoints calls GOEService.GetPoints.
-func (c *gOEServiceClient) GetPoints(ctx context.Context, req *connect.Request[proto.GetPointsRequest]) (*connect.Response[proto.GetPointsResponse], error) {
-	return c.getPoints.CallUnary(ctx, req)
+func (c *gOEServiceClient) GetPoints(ctx context.Context, req *connect.Request[proto.GetPointsRequest]) (*connect.ServerStreamForClient[proto.GetPointsResponse], error) {
+	return c.getPoints.CallServerStream(ctx, req)
 }
 
 // GOEServiceHandler is an implementation of the GOEService service.
 type GOEServiceHandler interface {
 	GetStats(context.Context, *connect.Request[proto.GetStatsRequest]) (*connect.Response[proto.GetStatsResponse], error)
-	GetPolylines(context.Context, *connect.Request[proto.GetPolylinesRequest]) (*connect.Response[proto.GetPolylinesResponse], error)
-	GetPoints(context.Context, *connect.Request[proto.GetPointsRequest]) (*connect.Response[proto.GetPointsResponse], error)
+	GetPolylines(context.Context, *connect.Request[proto.GetPolylinesRequest], *connect.ServerStream[proto.GetPolylinesResponse]) error
+	GetPoints(context.Context, *connect.Request[proto.GetPointsRequest], *connect.ServerStream[proto.GetPointsResponse]) error
 }
 
 // NewGOEServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -130,13 +130,13 @@ func NewGOEServiceHandler(svc GOEServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(gOEServiceGetStatsMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
-	gOEServiceGetPolylinesHandler := connect.NewUnaryHandler(
+	gOEServiceGetPolylinesHandler := connect.NewServerStreamHandler(
 		GOEServiceGetPolylinesProcedure,
 		svc.GetPolylines,
 		connect.WithSchema(gOEServiceGetPolylinesMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
-	gOEServiceGetPointsHandler := connect.NewUnaryHandler(
+	gOEServiceGetPointsHandler := connect.NewServerStreamHandler(
 		GOEServiceGetPointsProcedure,
 		svc.GetPoints,
 		connect.WithSchema(gOEServiceGetPointsMethodDescriptor),
@@ -163,10 +163,10 @@ func (UnimplementedGOEServiceHandler) GetStats(context.Context, *connect.Request
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("GOEService.GetStats is not implemented"))
 }
 
-func (UnimplementedGOEServiceHandler) GetPolylines(context.Context, *connect.Request[proto.GetPolylinesRequest]) (*connect.Response[proto.GetPolylinesResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("GOEService.GetPolylines is not implemented"))
+func (UnimplementedGOEServiceHandler) GetPolylines(context.Context, *connect.Request[proto.GetPolylinesRequest], *connect.ServerStream[proto.GetPolylinesResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("GOEService.GetPolylines is not implemented"))
 }
 
-func (UnimplementedGOEServiceHandler) GetPoints(context.Context, *connect.Request[proto.GetPointsRequest]) (*connect.Response[proto.GetPointsResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("GOEService.GetPoints is not implemented"))
+func (UnimplementedGOEServiceHandler) GetPoints(context.Context, *connect.Request[proto.GetPointsRequest], *connect.ServerStream[proto.GetPointsResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("GOEService.GetPoints is not implemented"))
 }
