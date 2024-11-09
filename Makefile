@@ -1,4 +1,4 @@
-.PHONY: release test deploy run gen clean
+.PHONY: release test deploy run gen gen-pretags clean
 
 BUILD_TIME = $(shell date +"%Y-%m-%d %H:%M:%S")
 COMMIT_HASH = $(shell git log -1 --pretty=format:%h)
@@ -55,11 +55,17 @@ install: goe
 
 $(GEN_FILES): gen
 
-gen: ../goeverywhere/grpcify/*.proto $(GOPATH)/bin/protoc-gen-connect-go /opt/homebrew/bin/protoc-gen-go
-	protoc --go_out=./proto --go_opt=paths=source_relative --connect-go_out=./proto --connect-go_opt=paths=source_relative ../goeverywhere/grpcify/*.proto --proto_path ../goeverywhere/grpcify/
+gen-pretags: ../goeverywhere/grpcify/*.proto $(GOPATH)/bin/protoc-gen-connect-go /opt/homebrew/bin/protoc-gen-go
+	protoc -I$(wildcard $(GOPATH)/pkg/mod/github.com/srikrsna/protoc-gen-gotag*)  --go_out=./proto --go_opt=paths=source_relative --connect-go_out=./proto --connect-go_opt=paths=source_relative ../goeverywhere/grpcify/*.proto --proto_path ../goeverywhere/grpcify/
+
+gen: gen-pretags $(GOPATH)/bin/protoc-gen-connect-gotag
+	protoc -I$(wildcard $(GOPATH)/pkg/mod/github.com/srikrsna/protoc-gen-gotag*)  --gotag_out=outdir=./proto:.  --gotag_opt=paths=source_relative ../goeverywhere/grpcify/*.proto --proto_path ../goeverywhere/grpcify/
 
 $(GOPATH)/bin/protoc-gen-connect-go:
 	go install connectrpc.com/connect/cmd/protoc-gen-connect-go@latest
+
+$(GOPATH)/bin/protoc-gen-connect-gotag:
+	go install github.com/srikrsna/protoc-gen-gotag@latest
 
 /opt/homebrew/bin/protoc-gen-go:
 	brew install protoc-gen-go

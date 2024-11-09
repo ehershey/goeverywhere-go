@@ -27,7 +27,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 334
+const autoupdate_version = 343
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_SECS = 10
 const WRITE_TIMEOUT_SECS = 10
@@ -281,6 +281,25 @@ func (s *gOEServiceServer) GetStats(
 
 	if err != nil {
 		wrappedErr := fmt.Errorf("Error calling getStats() in grpc method: %w", err)
+		return res, wrappedErr
+	}
+
+	return res, nil
+}
+
+func (s *gOEServiceServer) SavePosition(
+	ctx context.Context,
+	req *connect.Request[proto.SavePositionRequest],
+) (*connect.Response[proto.SavePositionResponse], error) {
+	log.Println("SavePosition request headers: ", req.Header())
+
+	entry_source := req.Header().Get("Host")
+	response, err := savePosition(ctx, entry_source, req.Msg)
+
+	res := connect.NewResponse(response.raw)
+
+	if err != nil {
+		wrappedErr := fmt.Errorf("Error calling savePosition() in grpc method: %w", err)
 		return res, wrappedErr
 	}
 

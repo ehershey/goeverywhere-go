@@ -6,28 +6,29 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"ernie.org/goe/proto"
 	servertiming "github.com/mitchellh/go-server-timing"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
-const stats_collection_name = "gps_log"
+const points_collection_name = "gps_log"
 
-func getStatsCollection() (*mongo.Client, *mongo.Collection, error) {
-	return getCollectionByName(stats_collection_name)
+func getPointsCollection() (*mongo.Client, *mongo.Collection, error) {
+	return getCollectionByName(points_collection_name)
 }
 
-// GetStatsHandlerWithTiming wraps our handler with
+// GetPointsHandlerWithTiming wraps our handler with
 // the server timing middleware
-var GetStatsHandlerWithTiming = servertiming.Middleware(http.HandlerFunc(GetStatsHandler), nil)
+var GetPointsHandlerWithTiming = servertiming.Middleware(http.HandlerFunc(GetPointsHandler), nil)
 
-// GetStatsHandler returns Statsu for gps_log data
+// GetPointsHandler returns Points for gps_log data
 // without server timing headers
-func GetStatsHandler(w http.ResponseWriter, r *http.Request) {
+func GetPointsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	timing := servertiming.FromContext(ctx)
@@ -43,11 +44,11 @@ func GetStatsHandler(w http.ResponseWriter, r *http.Request) {
 	// //return strings.Trim(strings.Join(strings.Split(fmt.Sprint(a), " "), delim), "[]")
 	// //return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(a)), delim), "[]")
 	// }
-	req := proto.GetStatsRequest{}
-	stats, err := getStats(ctx, &req)
+	req := proto.GetPointsRequest{}
+	stats, err := getPoints(ctx, &req)
 
 	if err != nil {
-		log.Printf("Got an error calling getStats(ctx,&req): %v\n", err)
+		log.Printf("Got an error calling getPoints(ctx,&req): %v\n", err)
 		return
 	}
 
@@ -57,13 +58,13 @@ func GetStatsHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func getStats(ctx context.Context, req *proto.GetStatsRequest) (*proto.GetStatsResponse, error) {
+func getPoints(ctx context.Context, req *proto.GetPointsRequest) (*proto.GetPointsResponse, error) {
 	// ctx, cancel := context.WithTimeout(context.Background(), default_timeout_seconds*time.Second)
 	// defer cancel()
 
-	client, collection, err := getStatsCollection()
+	client, collection, err := getPointsCollection()
 	if err != nil {
-		wrappedErr := fmt.Errorf("got an error calling getStatsCollection(): %w", err)
+		wrappedErr := fmt.Errorf("got an error calling getPointsCollection(): %w", err)
 		return nil, wrappedErr
 	}
 
@@ -142,13 +143,31 @@ func getStats(ctx context.Context, req *proto.GetStatsRequest) (*proto.GetStatsR
 		return nil, wrappedErr
 	}
 
-	response := &proto.GetStatsResponse{
-		OldestPointTimestamp: timestamppb.New(oldestPointTimestamp),
-		NewestPointTimestamp: timestamppb.New(newestPointTimestamp),
-		PointCount:           uint32(PointCount),
-		EntrySources:         EntrySources,
-	}
+	response := &proto.GetPointsResponse{}
 	log.Printf("response: %v\n", response)
 
 	return response, nil
+}
+
+// copied from livetrack_db.go
+type gps_log_point struct {
+	Id           primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
+	Entry_source string             `json:"entry_source"`
+	Altitude     float32            `json:"altitude" bson:"altitude,truncate"`
+	Speed        float32            `json:"speed"`
+	Entry_date   time.Time          `json:"entry_date"`
+	Loc          geopoint           `json:"loc"`
+	ActivityType string             `json:"activityType"`
+	Elevation    float32            `json:"elevation" bson:"elevation,truncate"`
+	Heading      int32              `json:"heading"`
+	Accuracy     float32            `json:"accuracy" bson:"truncate"`
+}
+
+type geopoint struct {
+	Type        string    `json:"type"`
+	Coordinates []float64 `json:"coordinates"`
+}
+
+func (point *gps_log_point) GetEntryDate() time.Time {
+	return point.Entry_date
 }

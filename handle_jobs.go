@@ -26,7 +26,7 @@ func HandleJobs() {
 		fmt.Printf("Checking for a queued job to run\n")
 		err := HandleOneJob()
 		if err != nil {
-			wrappedErr := fmt.Errorf("Error trying to run one job: %v", err)
+			wrappedErr := fmt.Errorf("Error trying to run one job: %w", err)
 			log.Println("got an error:", wrappedErr)
 		}
 		fmt.Printf("Waiting before checking again\n")
@@ -37,7 +37,7 @@ func HandleJobs() {
 func HandleOneJob() error {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		wrappedErr := fmt.Errorf("Error getting my homedir: %v", err)
+		wrappedErr := fmt.Errorf("Error getting my homedir: %w", err)
 		log.Println("got an error:", wrappedErr)
 		return wrappedErr
 	}
@@ -61,7 +61,7 @@ func HandleOneJob() error {
 			log.Println("No queued jobs")
 			return nil
 		}
-		wrappedErr := fmt.Errorf("Error finding queued job in db: %v", err)
+		wrappedErr := fmt.Errorf("Error finding queued job in db: %w", err)
 		log.Println("got an error:", wrappedErr)
 		return wrappedErr
 	}
@@ -73,12 +73,12 @@ func HandleOneJob() error {
 		fmt.Sprintf("max_lon=%f", job.MaxLon))
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		wrappedErr := fmt.Errorf("Error executing job command: %v", err)
+		wrappedErr := fmt.Errorf("Error executing job command: %w", err)
 		log.Println("got an error:", wrappedErr)
 		job.Output = fmt.Sprintf("Error: %v\nOutput: %s", wrappedErr, out)
 		failedErr := job.SetStatus("failed")
 		if failedErr != nil {
-			wrappedErr2 := fmt.Errorf("Error setting job status: %v", failedErr)
+			wrappedErr2 := fmt.Errorf("Error setting job status: %w", failedErr)
 			log.Println("got an error:", wrappedErr2)
 			return errors.Join(wrappedErr, wrappedErr2) // just abort if we get a second error while handling the command error
 		}
@@ -86,7 +86,7 @@ func HandleOneJob() error {
 		filter2 := bson.D{{Key: "_id", Value: job.Id}, {Key: "job_status", Value: "started"}}
 		result, err := collection.ReplaceOne(ctx, filter2, job)
 		if err != nil {
-			wrappedErr2 := fmt.Errorf("Error saving job error to DB: %v", err)
+			wrappedErr2 := fmt.Errorf("Error saving job error to DB: %w", err)
 			log.Println("got an error:", wrappedErr2)
 			return errors.Join(wrappedErr, wrappedErr2) // just abort if we get a second error while handling the command error
 		}
@@ -105,7 +105,7 @@ func HandleOneJob() error {
 	job.Output = string(out)
 	err = job.SetStatus("completed")
 	if err != nil {
-		wrappedErr := fmt.Errorf("Error setting job status: %v", err)
+		wrappedErr := fmt.Errorf("Error setting job status: %w", err)
 		log.Println("got an error:", wrappedErr)
 		return wrappedErr
 	}
@@ -113,7 +113,7 @@ func HandleOneJob() error {
 	filter3 := bson.D{{Key: "_id", Value: job.Id}, {Key: "job_status", Value: "started"}}
 	result, err := collection.ReplaceOne(ctx, filter3, job)
 	if err != nil {
-		wrappedErr := fmt.Errorf("Error saving job output to DB: %v", err)
+		wrappedErr := fmt.Errorf("Error saving job output to DB: %w", err)
 		log.Println("got an error:", wrappedErr)
 		return wrappedErr
 	}

@@ -3,25 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
-	"math/rand"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
-	"time"
 
 	geo "github.com/kellydunn/golang-geo"
 )
-
-var r *rand.Rand
-
-func TestMain(m *testing.M) {
-	// call flag.Parse() here if TestMain uses flags
-	r = rand.New(rand.NewSource(time.Now().UnixNano()))
-	os.Exit(m.Run())
-}
 
 func TestGetNodeById(t *testing.T) {
 	roptions := GetNodesOptions{NodeId: 243030850, AllowIgnored: true}
@@ -213,7 +202,7 @@ func TestGetNodesHandlerHashing(t *testing.T) {
 	w := httptest.NewRecorder()
 	GetNodesHandler(w, req)
 	resp := w.Result()
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 
 	if resp.StatusCode != 200 {
 		t.Errorf("resp.StatusCode = %d; want 200", resp.StatusCode)
@@ -235,7 +224,7 @@ func TestGetNodesHandlerHashing(t *testing.T) {
 	w = httptest.NewRecorder()
 	GetNodesHandler(w, req)
 	resp = w.Result()
-	body, _ = ioutil.ReadAll(resp.Body)
+	body, _ = io.ReadAll(resp.Body)
 
 	if resp.StatusCode != 200 {
 		t.Errorf("resp.StatusCode = %d; want 200", resp.StatusCode)
@@ -260,7 +249,7 @@ func TestGetNodesHandlerHashing(t *testing.T) {
 	w = httptest.NewRecorder()
 	GetNodesHandler(w, req)
 	resp = w.Result()
-	body, _ = ioutil.ReadAll(resp.Body)
+	body, _ = io.ReadAll(resp.Body)
 
 	if resp.StatusCode != 200 {
 		t.Errorf("resp.StatusCode = %d; want 200", resp.StatusCode)
@@ -291,7 +280,7 @@ func TestGetNodesHandlerMaxDistance(t *testing.T) {
 	w := httptest.NewRecorder()
 	GetNodesHandler(w, req)
 	resp := w.Result()
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 
 	if resp.StatusCode != 200 {
 		t.Errorf("resp.StatusCode = %d; want 200", resp.StatusCode)
@@ -327,7 +316,7 @@ func TestGetNodesHandlerLimit(t *testing.T) {
 	w := httptest.NewRecorder()
 	GetNodesHandler(w, req)
 	resp := w.Result()
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 
 	if resp.StatusCode != 200 {
 		t.Errorf("resp.StatusCode = %d; want 200", resp.StatusCode)
@@ -350,7 +339,7 @@ func TestGetNodesHandlerWithID(t *testing.T) {
 	w := httptest.NewRecorder()
 	GetNodesHandler(w, req)
 	resp := w.Result()
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 
 	// log.Println("body: ", string(body))
 
@@ -383,7 +372,7 @@ func TestGetNodesHandler(t *testing.T) {
 	w := httptest.NewRecorder()
 	GetNodesHandler(w, req)
 	resp := w.Result()
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 
 	if resp.StatusCode != 200 {
 		t.Errorf("resp.StatusCode = %d; want 200", resp.StatusCode)
@@ -518,7 +507,7 @@ func TestGetNodesHandlerGeoSort(t *testing.T) {
 	w := httptest.NewRecorder()
 	GetNodesHandler(w, req)
 	resp := w.Result()
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 
 	if resp.StatusCode != 200 {
 		t.Errorf("resp.StatusCode = %d; want 200", resp.StatusCode)
@@ -565,7 +554,7 @@ func TestGetNodesHandlerGeoSortWithBounds(t *testing.T) {
 	w := httptest.NewRecorder()
 	GetNodesHandler(w, req)
 	resp := w.Result()
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 
 	if resp.StatusCode != 200 {
 		t.Errorf("resp.StatusCode = %d; want 200", resp.StatusCode)

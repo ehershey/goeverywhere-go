@@ -1,20 +1,11 @@
 package main
 
 import (
-	// "context"
-
 	"context"
 	"encoding/json"
 	"time"
 
-	// "errors"
 	"fmt"
-	// "github.com/gorilla/schema"
-
-	// "go.mongodb.org/mongo-driver/bson"
-	// "go.mongodb.org/mongo-driver/bson/primitive"
-	// "go.mongodb.org/mongo-driver/mongo"
-	// "go.mongodb.org/mongo-driver/mongo/options"
 
 	"log"
 	"net/http"
@@ -24,9 +15,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	// "strconv"
-	// "strings"
-	// "time"
 )
 
 const jobs_collection_name = "jobs"
@@ -35,7 +23,6 @@ func getJobsCollection() (*mongo.Client, *mongo.Collection, error) {
 	return getCollectionByName(jobs_collection_name)
 }
 
-// RefreshNodesOptions is options for refreshing nodes
 type RefreshNodesOptions struct {
 	Action string  `schema:"action"`
 	JobId  string  `schema:"job_id"`
@@ -118,7 +105,7 @@ func RefreshNodesHandler(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 
 	if err != nil {
-		wrappedErr := fmt.Errorf("Error parsing input parameters: %v", err)
+		wrappedErr := fmt.Errorf("Error parsing input parameters: %w", err)
 		log.Println("got an error:", wrappedErr)
 		http.Error(w, wrappedErr.Error(), http.StatusBadRequest)
 		return
@@ -137,7 +124,7 @@ func RefreshNodesHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = decoder.Decode(&roptions, querymap)
 	if err != nil {
-		wrappedErr := fmt.Errorf("Error decoding input parameters: %v", err)
+		wrappedErr := fmt.Errorf("Error decoding input parameters: %w", err)
 		log.Println("got an error:", wrappedErr)
 		http.Error(w, wrappedErr.Error(), http.StatusBadRequest)
 		return
@@ -158,7 +145,7 @@ func RefreshNodesHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		job, err := GetJob(roptions.JobId)
 		if err != nil {
-			wrappedErr := fmt.Errorf("Error getting job: %v", err)
+			wrappedErr := fmt.Errorf("Error getting job: %w", err)
 			log.Println("got an error:", wrappedErr)
 			http.Error(w, wrappedErr.Error(), http.StatusBadRequest)
 			return
@@ -193,7 +180,7 @@ func RefreshNodesHandler(w http.ResponseWriter, r *http.Request) {
 
 		jobid, err := RefreshNodes(roptions)
 		if err != nil {
-			wrappedErr := fmt.Errorf("Error creating job: %v", err)
+			wrappedErr := fmt.Errorf("Error creating job: %w", err)
 			log.Println("got an error:", wrappedErr)
 			http.Error(w, wrappedErr.Error(), http.StatusBadRequest)
 			return
@@ -248,7 +235,7 @@ func RefreshNodes(roptions RefreshNodesOptions) (string, error) {
 	result, err := collection.InsertOne(ctx, job)
 	if err != nil {
 		fmt.Printf("Error inserting job: %v\n", err)
-		return "", fmt.Errorf("error inserting job: %v", err)
+		return "", fmt.Errorf("error inserting job: %w", err)
 	}
 	fmt.Printf("Inserted document with _id: %v\n", result.InsertedID)
 	return jobid, nil

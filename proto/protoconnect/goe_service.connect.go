@@ -41,6 +41,8 @@ const (
 	GOEServiceGetPolylinesProcedure = "/GOEService/GetPolylines"
 	// GOEServiceGetPointsProcedure is the fully-qualified name of the GOEService's GetPoints RPC.
 	GOEServiceGetPointsProcedure = "/GOEService/GetPoints"
+	// GOEServiceSavePositionProcedure is the fully-qualified name of the GOEService's SavePosition RPC.
+	GOEServiceSavePositionProcedure = "/GOEService/SavePosition"
 )
 
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
@@ -49,6 +51,7 @@ var (
 	gOEServiceGetStatsMethodDescriptor     = gOEServiceServiceDescriptor.Methods().ByName("GetStats")
 	gOEServiceGetPolylinesMethodDescriptor = gOEServiceServiceDescriptor.Methods().ByName("GetPolylines")
 	gOEServiceGetPointsMethodDescriptor    = gOEServiceServiceDescriptor.Methods().ByName("GetPoints")
+	gOEServiceSavePositionMethodDescriptor = gOEServiceServiceDescriptor.Methods().ByName("SavePosition")
 )
 
 // GOEServiceClient is a client for the GOEService service.
@@ -56,6 +59,7 @@ type GOEServiceClient interface {
 	GetStats(context.Context, *connect.Request[proto.GetStatsRequest]) (*connect.Response[proto.GetStatsResponse], error)
 	GetPolylines(context.Context, *connect.Request[proto.GetPolylinesRequest]) (*connect.ServerStreamForClient[proto.GetPolylinesResponse], error)
 	GetPoints(context.Context, *connect.Request[proto.GetPointsRequest]) (*connect.ServerStreamForClient[proto.GetPointsResponse], error)
+	SavePosition(context.Context, *connect.Request[proto.SavePositionRequest]) (*connect.Response[proto.SavePositionResponse], error)
 }
 
 // NewGOEServiceClient constructs a client for the GOEService service. By default, it uses the
@@ -86,6 +90,12 @@ func NewGOEServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithSchema(gOEServiceGetPointsMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		savePosition: connect.NewClient[proto.SavePositionRequest, proto.SavePositionResponse](
+			httpClient,
+			baseURL+GOEServiceSavePositionProcedure,
+			connect.WithSchema(gOEServiceSavePositionMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -94,6 +104,7 @@ type gOEServiceClient struct {
 	getStats     *connect.Client[proto.GetStatsRequest, proto.GetStatsResponse]
 	getPolylines *connect.Client[proto.GetPolylinesRequest, proto.GetPolylinesResponse]
 	getPoints    *connect.Client[proto.GetPointsRequest, proto.GetPointsResponse]
+	savePosition *connect.Client[proto.SavePositionRequest, proto.SavePositionResponse]
 }
 
 // GetStats calls GOEService.GetStats.
@@ -111,11 +122,17 @@ func (c *gOEServiceClient) GetPoints(ctx context.Context, req *connect.Request[p
 	return c.getPoints.CallServerStream(ctx, req)
 }
 
+// SavePosition calls GOEService.SavePosition.
+func (c *gOEServiceClient) SavePosition(ctx context.Context, req *connect.Request[proto.SavePositionRequest]) (*connect.Response[proto.SavePositionResponse], error) {
+	return c.savePosition.CallUnary(ctx, req)
+}
+
 // GOEServiceHandler is an implementation of the GOEService service.
 type GOEServiceHandler interface {
 	GetStats(context.Context, *connect.Request[proto.GetStatsRequest]) (*connect.Response[proto.GetStatsResponse], error)
 	GetPolylines(context.Context, *connect.Request[proto.GetPolylinesRequest], *connect.ServerStream[proto.GetPolylinesResponse]) error
 	GetPoints(context.Context, *connect.Request[proto.GetPointsRequest], *connect.ServerStream[proto.GetPointsResponse]) error
+	SavePosition(context.Context, *connect.Request[proto.SavePositionRequest]) (*connect.Response[proto.SavePositionResponse], error)
 }
 
 // NewGOEServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -142,6 +159,12 @@ func NewGOEServiceHandler(svc GOEServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(gOEServiceGetPointsMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	gOEServiceSavePositionHandler := connect.NewUnaryHandler(
+		GOEServiceSavePositionProcedure,
+		svc.SavePosition,
+		connect.WithSchema(gOEServiceSavePositionMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/GOEService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case GOEServiceGetStatsProcedure:
@@ -150,6 +173,8 @@ func NewGOEServiceHandler(svc GOEServiceHandler, opts ...connect.HandlerOption) 
 			gOEServiceGetPolylinesHandler.ServeHTTP(w, r)
 		case GOEServiceGetPointsProcedure:
 			gOEServiceGetPointsHandler.ServeHTTP(w, r)
+		case GOEServiceSavePositionProcedure:
+			gOEServiceSavePositionHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -169,4 +194,8 @@ func (UnimplementedGOEServiceHandler) GetPolylines(context.Context, *connect.Req
 
 func (UnimplementedGOEServiceHandler) GetPoints(context.Context, *connect.Request[proto.GetPointsRequest], *connect.ServerStream[proto.GetPointsResponse]) error {
 	return connect.NewError(connect.CodeUnimplemented, errors.New("GOEService.GetPoints is not implemented"))
+}
+
+func (UnimplementedGOEServiceHandler) SavePosition(context.Context, *connect.Request[proto.SavePositionRequest]) (*connect.Response[proto.SavePositionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("GOEService.SavePosition is not implemented"))
 }
