@@ -44,7 +44,7 @@ func TestSavePosition(t *testing.T) {
 		t.Fatalf("got an error: %v", err)
 	}
 
-	log.Printf("test_response: %v", test_response)
+	log.Printf("test_response: %v\n", test_response)
 
 	// {"_id": {"$oid": "672f7c3731563ed4908fb1ec"}, "entry_date": {"$date": "2024-11-09T15:23:29.811Z"}, "loc": {"type": "Point", "coordinates": [-74.05715643152593, 40.711422093747366]}, "entry_source": "goeverywhere-local.ernie.org", "accuracy": 35.0}
 	// {"_id": {"$oid": "672f7c3731563ed4908fb1ec"}

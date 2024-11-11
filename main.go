@@ -27,7 +27,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 343
+const autoupdate_version = 349
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_SECS = 10
 const WRITE_TIMEOUT_SECS = 10
@@ -150,7 +150,7 @@ func serve(handleJobs bool) {
 	//h2chandler := h2c.NewHandler(r, srv)
 	shuttingDownGracefully := false
 	go func() {
-		log.Printf("Starting HTTP listener on: %v", config.HTTPListenAddr)
+		log.Printf("Starting HTTP listener on: %v\n", config.HTTPListenAddr)
 		err = srv.ListenAndServe()
 		if err != nil && !shuttingDownGracefully {
 			log.Fatalf("failed to start HTTP listener: %v", err)
@@ -163,7 +163,7 @@ func serve(handleJobs bool) {
 	grpc_mux.Handle(GRPCPath, GRPCHandler)
 
 	go func() {
-		log.Printf("Starting GRPC listener on: %v", config.GRPCListenAddr)
+		log.Printf("Starting GRPC listener on: %v\n", config.GRPCListenAddr)
 		err = http.ListenAndServe(
 			config.GRPCListenAddr, // Use h2c so we can serve HTTP/2 without TLS.
 			h2c.NewHandler(grpc_mux, &http2.Server{}),
@@ -293,15 +293,18 @@ func (s *gOEServiceServer) SavePosition(
 ) (*connect.Response[proto.SavePositionResponse], error) {
 	log.Println("SavePosition request headers: ", req.Header())
 
-	entry_source := req.Header().Get("Host")
-	response, err := savePosition(ctx, entry_source, req.Msg)
+	entry_source := req.Header().Get("X-Forwarded-Host")
 
-	res := connect.NewResponse(response.raw)
+	// TODO: sanitize this header - use allow list and verify multiple values still works
+	//
+	response, err := savePosition(ctx, entry_source, req.Msg)
 
 	if err != nil {
 		wrappedErr := fmt.Errorf("Error calling savePosition() in grpc method: %w", err)
-		return res, wrappedErr
+		return nil, wrappedErr
 	}
+
+	res := connect.NewResponse(response.raw)
 
 	return res, nil
 }
