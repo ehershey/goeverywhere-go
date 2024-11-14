@@ -27,9 +27,9 @@ type StravaActivity struct {
 	MapPolyline string `bson:"map_polyline" json:"map_polyline"`
 }
 
-func getPolylines(ctx context.Context, req *proto.GetPolylinesRequest) iter.Seq[proto.GetPolylinesResponse] {
+func getPolylines(ctx context.Context, req *proto.GetPolylinesRequest) iter.Seq[*proto.GetPolylinesResponse] {
 
-	return func(yield func(proto.GetPolylinesResponse) bool) {
+	return func(yield func(*proto.GetPolylinesResponse) bool) {
 		_, coll, err := getPolylinesCollection()
 		if err != nil {
 			panic(err)
@@ -49,7 +49,7 @@ func getPolylines(ctx context.Context, req *proto.GetPolylinesRequest) iter.Seq[
 			var activity_polyline_array []*proto.ActivityPolyline
 			activity_polyline_array = append(activity_polyline_array, one_activity_polyline)
 			//activity_polyline_array[0] = one_activity_polyline
-			if !yield(proto.GetPolylinesResponse{Polylines: activity_polyline_array}) {
+			if !yield(&proto.GetPolylinesResponse{Polylines: activity_polyline_array}) {
 				return
 			}
 			if err := cursor.Err(); err != nil {

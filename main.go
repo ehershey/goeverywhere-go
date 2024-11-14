@@ -27,7 +27,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 349
+const autoupdate_version = 350
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_SECS = 10
 const WRITE_TIMEOUT_SECS = 10
@@ -258,7 +258,7 @@ func (s *gOEServiceServer) GetPolylines(
 
 	for line := range getPolylines(ctx, req.Msg) {
 
-		if err := stream.Send(&line); err != nil {
+		if err := stream.Send(line); err != nil {
 			wrappedErr := fmt.Errorf("Error sending res to stream: %w", err)
 			return wrappedErr
 		}
