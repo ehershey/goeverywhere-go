@@ -8,7 +8,7 @@ sources:
     - https://git.sr.ht/~ernie/goeverywhere-go
 tasks:
     - setup-mongo: |
-        sudo dnf install -y 'dnf-command(config-manager)'
+        sudo dnf install -y 'dnf5-command(config-manager)'
         sudo dnf config-manager addrepo --set=baseurl=https://repo.mongodb.org/yum/amazon/2023/mongodb-org/8.0/x86_64
         curl -LO https://www.mongodb.org/static/pgp/server-8.0.asc
         sudo rpm --import server-8.0.asc
