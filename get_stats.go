@@ -72,12 +72,9 @@ func getStats(ctx context.Context, req *proto.GetStatsRequest) (*proto.GetStatsR
 	log.Println("got db client and collection ref")
 
 	oldest_find_opts := options.FindOne()
-	// find_opts.SetLimit(1)
 	empty_query := bson.D{}
-	oldest_sort := empty_query // bson.D{{"entry_date", 1}}
+	oldest_sort := bson.D{{Key: "entry_date", Value: 1}}
 	oldest_find_opts.SetSort(oldest_sort)
-	//find_opts.SetSort(bson.D{{Key: "entry_date", Value: -1}})
-	//query := bson.M{"entry_date": bson.M{"$exists": true}}
 	log.Printf("empty_query: %v\n", empty_query)
 	log.Printf("oldest_sort: %v\n", oldest_sort)
 
