@@ -22,15 +22,14 @@ func TestSavePosition(t *testing.T) {
 	now := time.Now()
 
 	nowts := timestamppb.New(now)
-	// save_position.cgi?timestamp=752678609811&coords%5Blongitude%5D=-74.05715643152593&coords%5Blatitude%5D=40.711422093747366&coords%5Bspeed%5D=&coords%5Bheading%5D=&coords%5Baltitude%5D=&coords%5Baccuracy%5D=35&coords%5BaltitudeAccuracy%5D=
-	// timestamp=752678609811
-	// [ ] coords%5Blongitude%5D=-74.05715643152593
-	// [ ] coords%5Blatitude%5D=40.711422093747366
-	// [ ] coords%5Bspeed%5D=
-	// [ ] coords%5Bheading%5D=
-	// [ ] coords%5Baltitude%5D=
-	// [ ] coords%5Baccuracy%5D=35
-	// [ ] coords%5BaltitudeAccuracy%5D=
+	// "GET /save_position.cgi?timestamp=1732614502060
+	// [ ] coords%5Blongitude%5D=-73.26432781959026
+	// [ ] coords%5Blatitude%5D=41.183462092797
+	// [ ] coords%5Bspeed%5D=3.779438376414303
+	// [ ] coords%5Bheading%5D=292.1596296058412
+	// [ ] coords%5Baltitude%5D=3.925023391842842
+	// [ ] coords%5Baccuracy%5D=52.98641791661295
+	// [ ] coords%5BaltitudeAccuracy%5D=3
 
 	randLatLng := latlng.LatLng{Longitude: randLon, Latitude: randLat}
 	geom := proto.Geometry{Coordinates: &randLatLng}
