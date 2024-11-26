@@ -153,14 +153,14 @@ func getPoints(ctx context.Context, req *proto.GetPointsRequest) (*proto.GetPoin
 type gps_log_point struct {
 	Id           primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
 	Entry_source string             `json:"entry_source"`
-	Altitude     float32            `json:"altitude" bson:"altitude,truncate"`
-	Speed        float32            `json:"speed"`
+	Altitude     float32            `json:"altitude,omitempty" bson:"altitude,truncate,omitempty"`
+	Speed        float32            `json:"speed,omitempty" bson:"speed,omitempty"`
 	Entry_date   time.Time          `json:"entry_date"`
 	Loc          geopoint           `json:"loc"`
-	ActivityType string             `json:"activityType"`
-	Elevation    float32            `json:"elevation" bson:"elevation,truncate"`
-	Heading      int32              `json:"heading"`
-	Accuracy     float32            `json:"accuracy" bson:"truncate"`
+	ActivityType string             `json:"activityType,omitempty" bson:"activityType,omitempty"`
+	Elevation    float32            `json:"elevation,omitempty" bson:"elevation,truncate,omitempty"`
+	Heading      int32              `json:"heading,omitempty" bson:"heading,omitempty"`
+	Accuracy     float32            `json:"accuracy,omitempty" bson:"truncate,omitempty"`
 }
 
 type geopoint struct {
