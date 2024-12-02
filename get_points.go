@@ -158,7 +158,6 @@ type gps_log_point struct {
 	Entry_date   time.Time          `json:"entry_date"`
 	Loc          geopoint           `json:"loc"`
 	ActivityType string             `json:"activityType,omitempty" bson:"activityType,omitempty"`
-	Elevation    float32            `json:"elevation,omitempty" bson:"elevation,truncate,omitempty"`
 	Heading      int32              `json:"heading,omitempty" bson:"heading,omitempty"`
 	Accuracy     float32            `json:"accuracy,omitempty" bson:"truncate,omitempty"`
 }

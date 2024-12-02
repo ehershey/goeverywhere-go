@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"testing"
 	"time"
@@ -15,7 +16,7 @@ import (
 	"ernie.org/goe/proto"
 )
 
-const test_entry_source = "Test Entry Source"
+const test_entry_source_template = "Test Entry Source %v"
 
 func TestSavePosition(t *testing.T) {
 
@@ -42,7 +43,7 @@ func TestSavePosition(t *testing.T) {
 	point := proto.Point{Loc: &geom, EntryDate: nowts}
 	test_request := &proto.SavePositionRequest{Coords: &point}
 
-	// test_response, err := savePosition(context.Background(), test_entry_source, test_request)
+	test_entry_source := get_test_entry_source()
 	test_response, err := savePosition(ctx, test_entry_source, test_request)
 	if err != nil {
 		t.Fatalf("got an error: %v", err)
@@ -89,6 +90,7 @@ func TestSavePositionNoTime(t *testing.T) {
 	point := proto.Point{Loc: &geom}
 	test_request := &proto.SavePositionRequest{Coords: &point}
 
+	test_entry_source := get_test_entry_source()
 	test_response, err := savePosition(ctx, test_entry_source, test_request)
 	if err == nil || !errors.Is(err, validationError) {
 		t.Fatalf("Didn't get a validation error but expected one for no timestamp passed in (test_response: %v, %v)", test_response, err)
@@ -112,7 +114,7 @@ func TestSavePositionZeroFields(t *testing.T) {
 	test_request := &proto.SavePositionRequest{Coords: &point}
 	log.Printf("test_request: %v\n", test_request)
 
-	// test_response, err := savePosition(context.Background(), test_entry_source, test_request)
+	test_entry_source := get_test_entry_source()
 	test_response, err := savePosition(context.Background(), test_entry_source, test_request)
 	if err != nil {
 		t.Fatalf("got an error: %v", err)
@@ -156,7 +158,7 @@ func TestSavePositionZeroFields(t *testing.T) {
 	}
 	log.Println("db_point:", db_point)
 
-	zeroFields := []string{"speed", "activity_type", "elevation", "heading", "truncate"}
+	zeroFields := []string{"speed", "activity_type", "altitude", "heading", "truncate"}
 
 	for _, field := range zeroFields {
 		query[field] = bson.M{"$exists": false}
@@ -168,4 +170,8 @@ func TestSavePositionZeroFields(t *testing.T) {
 		t.Fatalf("got an error: %v", err)
 	}
 	log.Println("db_point:", db_point)
+}
+
+func get_test_entry_source() string {
+	return fmt.Sprintf(test_entry_source_template, r.Float64())
 }

@@ -22,7 +22,7 @@ func TestGetStats(t *testing.T) {
 	}
 }
 
-func TestElevationFloat(t *testing.T) {
+func TestAltitudeFloat(t *testing.T) {
 	request := proto.GetStatsRequest{}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

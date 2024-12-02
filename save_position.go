@@ -90,7 +90,6 @@ func (request_point *savePositionPoint) to_gps_log_point() (*gps_log_point, erro
 		Speed:        point.Speed,
 		Entry_date:   point.EntryDate.AsTime(),
 		Loc:          geopoint{Type: "Point", Coordinates: []float64{request_point.GetLon(), request_point.GetLat()}},
-		Elevation:    point.Elevation,
 	}, nil
 }
 
