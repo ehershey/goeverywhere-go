@@ -23,8 +23,14 @@ func TestSavePosition(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	randLon := r.Float64()
-	randLat := r.Float64()
+	randLon := get_rand_lon()
+	randLat := get_rand_lat()
+
+	randAccuracy := r.Float32() + float32(r.Int())
+	randSpeed := r.Float32() + float32(r.Int())
+	randHeading := r.Float32() + float32(r.Int())
+	randAltitude := r.Float32() + float32(r.Int())
+	randAltitudeAccuracy := r.Float32() + float32(r.Int())
 	now := time.Now()
 
 	nowts := timestamppb.New(now)
@@ -40,7 +46,14 @@ func TestSavePosition(t *testing.T) {
 	randLatLng := latlng.LatLng{Longitude: randLon, Latitude: randLat}
 	geom := proto.Geometry{Coordinates: &randLatLng}
 
-	point := proto.Point{Loc: &geom, EntryDate: nowts}
+	point := proto.Point{Loc: &geom, EntryDate: nowts,
+
+		Accuracy:         randAccuracy,
+		Speed:            randSpeed,
+		Heading:          randHeading,
+		Altitude:         randAltitude,
+		AltitudeAccuracy: randAltitudeAccuracy,
+	}
 	test_request := &proto.SavePositionRequest{Coords: &point}
 
 	test_entry_source := get_test_entry_source()
@@ -75,14 +88,108 @@ func TestSavePosition(t *testing.T) {
 		t.Errorf("Got different entry_source in save position response (%s) than sent in request (%s)", responseEntrySource, test_entry_source)
 	}
 
+	//Accuracy:         randAccuracy,
+	//Speed:            randSpeed,
+	//Heading:          randHeading,
+	//Altitude:         randAltitude,
+	//AltitudeAccuracy: randAltitudeAccuracy,
+
+	responseAccuracy := test_response.raw.SavedPoint.GetAccuracy()
+	if responseAccuracy != randAccuracy {
+		t.Errorf("Got different Accuracy in save position response (%f) than sent in request (%f)", responseAccuracy, randAccuracy)
+	} else {
+		fmt.Printf("Got same Accuracy in save position response (%f) as sent in request (%f)", responseAccuracy, randAccuracy)
+	}
+	responseSpeed := test_response.raw.SavedPoint.GetSpeed()
+	if responseSpeed != randSpeed {
+		t.Errorf("Got different Speed in save position response (%f) than sent in request (%f)", responseSpeed, randSpeed)
+	}
+	responseHeading := test_response.raw.SavedPoint.GetHeading()
+	if responseHeading != randHeading {
+		t.Errorf("Got different Heading in save position response (%f) than sent in request (%f)", responseHeading, randHeading)
+	}
+	responseAltitude := test_response.raw.SavedPoint.GetAltitude()
+	if responseAltitude != randAltitude {
+		t.Errorf("Got different Altitude in save position response (%f) than sent in request (%f)", responseAltitude, randAltitude)
+	}
+	responseAltitudeAccuracy := test_response.raw.SavedPoint.GetAltitudeAccuracy()
+	if responseAltitudeAccuracy != randAltitudeAccuracy {
+		t.Errorf("Got different AltitudeAccuracy in save position response (%f) than sent in request (%f)", responseAltitudeAccuracy, randAltitudeAccuracy)
+	}
+
+	client, collection, err := getPointsCollection()
+	if err != nil {
+		t.Fatalf("got an error: %v", err)
+	}
+	defer client.Disconnect(ctx)
+
+	oid, err := primitive.ObjectIDFromHex(test_response.raw.SavedPoint.Id)
+	if err != nil {
+		t.Fatalf("got an error: %v", err)
+	}
+	query := bson.M{"_id": oid}
+	log.Println("query:", query)
+
+	resp := collection.FindOne(ctx, query)
+	db_point, err := resp.Raw()
+	if err != nil {
+		t.Fatalf("got an error: %v", err)
+	}
+	log.Println("db_point:", db_point)
+
+	db_gps_log_point := gps_log_point{}
+	if err := resp.Decode(&db_gps_log_point); err != nil {
+		t.Fatalf("got an error: %v", err)
+	}
+	db_point_obj := &db_gps_log_point
+	log.Println("db_point_obj:", &db_point_obj)
+
+	dbLat := db_point_obj.GetLat()
+	if dbLat != randLat {
+		t.Errorf("Got different latitude in save position db (%f) than sent in request (%f)", dbLat, randLat)
+	}
+
+	dbLon := db_point_obj.GetLon()
+	if dbLon != randLon {
+		t.Errorf("Got different latitude in save position db (%f) than sent in request (%f)", dbLon, randLon)
+	}
+
+	dbEntrySource := db_point_obj.EntrySource
+	if dbEntrySource != test_entry_source {
+		t.Errorf("Got different entry_source in save position db (%s) than sent in request (%s)", dbEntrySource, test_entry_source)
+	}
+
+	dbAccuracy := db_point_obj.Accuracy
+	if dbAccuracy != randAccuracy {
+		t.Errorf("Got different Accuracy in save position db (%f) than sent in request (%f)", dbAccuracy, randAccuracy)
+	} else {
+		fmt.Printf("Got same Accuracy in save position db (%f) as sent in request (%f)", dbAccuracy, randAccuracy)
+	}
+	dbSpeed := db_point_obj.Speed
+	if dbSpeed != randSpeed {
+		t.Errorf("Got different Speed in save position db (%f) than sent in request (%f)", dbSpeed, randSpeed)
+	}
+	dbHeading := db_point_obj.Heading
+	if dbHeading != randHeading {
+		t.Errorf("Got different Heading in save position db (%f) than sent in request (%f)", dbHeading, randHeading)
+	}
+	dbAltitude := db_point_obj.Altitude
+	if dbAltitude != randAltitude {
+		t.Errorf("Got different Altitude in save position db (%f) than sent in request (%f)", dbAltitude, randAltitude)
+	}
+	dbAltitudeAccuracy := db_point_obj.AltitudeAccuracy
+	if dbAltitudeAccuracy != randAltitudeAccuracy {
+		t.Errorf("Got different AltitudeAccuracy in save position db (%f) than sent in request (%f)", dbAltitudeAccuracy, randAltitudeAccuracy)
+	}
+
 }
 
 func TestSavePositionNoTime(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	randLon := r.Float64()
-	randLat := r.Float64()
+	randLon := get_rand_lon()
+	randLat := get_rand_lat()
 
 	randLatLng := latlng.LatLng{Longitude: randLon, Latitude: randLat}
 	geom := proto.Geometry{Coordinates: &randLatLng}
@@ -101,8 +208,8 @@ func TestSavePositionZeroFields(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	randLon := r.Float64()
-	randLat := r.Float64()
+	randLon := get_rand_lon()
+	randLat := get_rand_lat()
 	now := time.Now()
 
 	nowts := timestamppb.New(now)
@@ -174,4 +281,11 @@ func TestSavePositionZeroFields(t *testing.T) {
 
 func get_test_entry_source() string {
 	return fmt.Sprintf(test_entry_source_template, r.Float64())
+}
+
+func get_rand_lon() float64 {
+	return r.Float64() + float64(r.Intn(175))
+}
+func get_rand_lat() float64 {
+	return r.Float64() + float64(r.Intn(85))
 }

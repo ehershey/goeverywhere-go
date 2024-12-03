@@ -43,6 +43,7 @@ func savePosition(ctx context.Context, entry_source string, req *proto.SavePosit
 		return nil, wrappedErr
 	}
 	fmt.Printf("gps_log_point: %v\n", gps_log_point)
+	fmt.Printf("here 2: gps_log_point.EntrySource: %s\n", gps_log_point.EntrySource)
 	result, err := collection.InsertOne(ctx, gps_log_point)
 	if err != nil {
 		wrappedErr := fmt.Errorf("Error inserting point: %w", err)
@@ -83,13 +84,17 @@ func validatePoint(point *proto.Point) error {
 func (request_point *savePositionPoint) to_gps_log_point() (*gps_log_point, error) {
 
 	point := request_point.raw
+	fmt.Printf("here 1: point.EntrySource: %s\n", point.EntrySource)
 
 	return &gps_log_point{
-		Entry_source: point.EntrySource,
-		Altitude:     point.Altitude,
-		Speed:        point.Speed,
-		Entry_date:   point.EntryDate.AsTime(),
-		Loc:          geopoint{Type: "Point", Coordinates: []float64{request_point.GetLon(), request_point.GetLat()}},
+		EntrySource:      point.EntrySource,
+		Altitude:         point.Altitude,
+		AltitudeAccuracy: point.AltitudeAccuracy,
+		Accuracy:         point.Accuracy,
+		Speed:            point.Speed,
+		Heading:          point.Heading,
+		EntryDate:        point.EntryDate.AsTime(),
+		Loc:              geopoint{Type: "Point", Coordinates: []float64{request_point.GetLon(), request_point.GetLat()}},
 	}, nil
 }
 
