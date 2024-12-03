@@ -14,12 +14,13 @@ GEN_PRETAG_FILES = proto_pretag/stats.pb.go proto_pretag/polylines.pb.go proto_p
 PROTO_FILES = $(wildcard $(PROTO_PATH)*.proto)
 PROTO_PATH = ../goeverywhere/grpcify/
 
-FLAGS = -X \"main.BuildTime=$(BUILD_TIME)\"
-FLAGS += -X \"main.CommitHash=$(COMMIT_HASH)\"
-FLAGS += -X \"main.GoVersion=$(GO_VERSION)\"
+LDFLAGS = -X \"main.BuildTime=$(BUILD_TIME)\"
+LDFLAGS += -X \"main.CommitHash=$(COMMIT_HASH)\"
+LDFLAGS += -X \"main.GoVersion=$(GO_VERSION)\"
+LDFLAGS += -s -w
 
 goe: *.go */*.go $(GEN_FILES)
-	go build -ldflags "$(FLAGS)"
+	go build -ldflags "$(LDFLAGS)"
 
 run: goe
 	./goe $(GOE_RUN_FLAGS)
@@ -27,10 +28,10 @@ run: goe
 release: goe.linux.arm64 goe.linux.amd64
 
 goe.linux.arm64: test.success goe
-	GOOS=linux GOARCH=arm64 go build -o goe.linux.arm64 -ldflags "$(FLAGS)"
+	GOOS=linux GOARCH=arm64 go build -o goe.linux.arm64 -ldflags "$(LDFLAGS)"
 
 goe.linux.amd64: test.success goe
-	GOOS=linux GOARCH=amd64 go build -o goe.linux.amd64 -ldflags "$(FLAGS)"
+	GOOS=linux GOARCH=amd64 go build -o goe.linux.amd64 -ldflags "$(LDFLAGS)"
 
 test: *.go db.created
 	go test -v && scripts/verify_no_extra_output.sh && touch test.success
