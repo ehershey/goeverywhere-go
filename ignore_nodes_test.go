@@ -2,7 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"fmt"
+	"io"
 	"net/http/httptest"
 	"testing"
 )
@@ -40,7 +41,7 @@ func TestIgnoreNodesHandler(t *testing.T) {
 	w := httptest.NewRecorder()
 	IgnoreNodesHandler(w, req)
 	resp := w.Result()
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 
 	// log.Println("body: ", string(body))
 
@@ -72,7 +73,7 @@ func TestIgnoreNodesHandlerUnignore(t *testing.T) {
 	w := httptest.NewRecorder()
 	IgnoreNodesHandler(w, req)
 	resp := w.Result()
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, _ := io.ReadAll(resp.Body)
 
 	// log.Println("body: ", string(body))
 
@@ -101,6 +102,9 @@ func TestIgnoreNodesHandlerUnignore(t *testing.T) {
 
 func DecodeIgnoreResponse(jsondata []byte) (error, *IgnoreNodesResponse) {
 	var response IgnoreNodesResponse
-	json.Unmarshal(jsondata, &response)
+	if err := json.Unmarshal(jsondata, &response); err != nil {
+		wrappedErr := fmt.Errorf("Error unmarshaling response: %w", err)
+		return wrappedErr, &response
+	}
 	return nil, &response
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"testing"
 	"time"
 
@@ -62,7 +61,7 @@ func TestSavePosition(t *testing.T) {
 		t.Fatalf("got an error: %v", err)
 	}
 
-	log.Printf("test_response: %v\n", test_response)
+	t.Log("test_response", test_response)
 
 	// {"_id": {"$oid": "672f7c3731563ed4908fb1ec"}, "entry_date": {"$date": "2024-11-09T15:23:29.811Z"}, "loc": {"type": "Point", "coordinates": [-74.05715643152593, 40.711422093747366]}, "entry_source": "goeverywhere-local.ernie.org", "accuracy": 35.0}
 	// {"_id": {"$oid": "672f7c3731563ed4908fb1ec"}
@@ -98,7 +97,7 @@ func TestSavePosition(t *testing.T) {
 	if responseAccuracy != randAccuracy {
 		t.Errorf("Got different Accuracy in save position response (%f) than sent in request (%f)", responseAccuracy, randAccuracy)
 	} else {
-		fmt.Printf("Got same Accuracy in save position response (%f) as sent in request (%f)", responseAccuracy, randAccuracy)
+		t.Logf("Got same Accuracy in save position response (%f) as sent in request (%f)", responseAccuracy, randAccuracy)
 	}
 	responseSpeed := test_response.raw.SavedPoint.GetSpeed()
 	if responseSpeed != randSpeed {
@@ -128,21 +127,21 @@ func TestSavePosition(t *testing.T) {
 		t.Fatalf("got an error: %v", err)
 	}
 	query := bson.M{"_id": oid}
-	log.Println("query:", query)
+	t.Log("query", query)
 
 	resp := collection.FindOne(ctx, query)
 	db_point, err := resp.Raw()
 	if err != nil {
 		t.Fatalf("got an error: %v", err)
 	}
-	log.Println("db_point:", db_point)
+	t.Log("db_point", db_point)
 
 	db_gps_log_point := gps_log_point{}
 	if err := resp.Decode(&db_gps_log_point); err != nil {
 		t.Fatalf("got an error: %v", err)
 	}
 	db_point_obj := &db_gps_log_point
-	log.Println("db_point_obj:", &db_point_obj)
+	t.Log("db_point_obj", &db_point_obj)
 
 	dbLat := db_point_obj.GetLat()
 	if dbLat != randLat {
@@ -163,7 +162,7 @@ func TestSavePosition(t *testing.T) {
 	if dbAccuracy != randAccuracy {
 		t.Errorf("Got different Accuracy in save position db (%f) than sent in request (%f)", dbAccuracy, randAccuracy)
 	} else {
-		fmt.Printf("Got same Accuracy in save position db (%f) as sent in request (%f)", dbAccuracy, randAccuracy)
+		t.Logf("Got same Accuracy in save position db (%f) as sent in request (%f)", dbAccuracy, randAccuracy)
 	}
 	dbSpeed := db_point_obj.Speed
 	if dbSpeed != randSpeed {
@@ -219,7 +218,7 @@ func TestSavePositionZeroFields(t *testing.T) {
 
 	point := proto.Point{Loc: &geom, EntryDate: nowts}
 	test_request := &proto.SavePositionRequest{Coords: &point}
-	log.Printf("test_request: %v\n", test_request)
+	t.Log("test_request", test_request)
 
 	test_entry_source := get_test_entry_source()
 	test_response, err := savePosition(context.Background(), test_entry_source, test_request)
@@ -229,7 +228,7 @@ func TestSavePositionZeroFields(t *testing.T) {
 
 	// query DB For new point looking for existing fields that shouldn't exist
 
-	log.Printf("test_response: %v\n", test_response)
+	t.Log("test_response", test_response)
 
 	responseLat := test_response.GetLat()
 	if responseLat != randLat {
@@ -257,26 +256,26 @@ func TestSavePositionZeroFields(t *testing.T) {
 		t.Fatalf("got an error: %v", err)
 	}
 	query := bson.M{"_id": oid}
-	log.Println("query:", query)
+	t.Log("query", query)
 
 	db_point, err := collection.FindOne(ctx, query).Raw()
 	if err != nil {
 		t.Fatalf("got an error: %v", err)
 	}
-	log.Println("db_point:", db_point)
+	t.Log("db_point", db_point)
 
 	zeroFields := []string{"speed", "activity_type", "altitude", "heading", "truncate"}
 
 	for _, field := range zeroFields {
 		query[field] = bson.M{"$exists": false}
 	}
-	log.Println("query:", query)
+	t.Log("query", query)
 
 	db_point, err = collection.FindOne(ctx, query).Raw()
 	if err != nil {
 		t.Fatalf("got an error: %v", err)
 	}
-	log.Println("db_point:", db_point)
+	t.Log("db_point", db_point)
 }
 
 func get_test_entry_source() string {

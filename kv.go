@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -62,7 +63,9 @@ func KeyValueHandler(w http.ResponseWriter, r *http.Request) {
 		V: v,
 	}
 
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		fmt.Printf("Got error encoding response: %v\n", err)
+	}
 
 }
 
@@ -75,7 +78,13 @@ func getKV(roptions KeyValueOptions) (string, error) {
 		log.Println("got an error:", err)
 		return "", err
 	}
-	defer client.Disconnect(ctx)
+
+	defer func() {
+		err := client.Disconnect(ctx)
+		if err != nil {
+			fmt.Printf("Error disconnecting from db: %v\n", err)
+		}
+	}()
 
 	query := bson.M{"k": roptions.K}
 	update := bson.D{{Key: "$set", Value: bson.D{{Key: "v", Value: roptions.V}}}}

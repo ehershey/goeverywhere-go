@@ -85,15 +85,17 @@ func IgnoreNodesHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	response := &node
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		fmt.Printf("Error encoding response: %v\n", err)
+	}
 
 }
 
-func decodeIgnoreNodesResponse(jsondata []byte) (*IgnoreNodesResponse, error) {
-	var response IgnoreNodesResponse
-	json.Unmarshal(jsondata, &response)
-	return &response, nil
-}
+//func decodeIgnoreNodesResponse(jsondata []byte) (*IgnoreNodesResponse, error) {
+//var response IgnoreNodesResponse
+//json.Unmarshal(jsondata, &response)
+//return &response, nil
+//}
 
 // IgnoreNodes either ignores or unignores a node
 func ignoreNodes(roptions IgnoreNodesOptions) (*IgnoreNodesResponse, error) {
@@ -105,7 +107,13 @@ func ignoreNodes(roptions IgnoreNodesOptions) (*IgnoreNodesResponse, error) {
 		log.Println("got an error:", err)
 		return nil, fmt.Errorf("error finding collection: %v", err)
 	}
-	defer client.Disconnect(ctx)
+
+	defer func() {
+		err := client.Disconnect(ctx)
+		if err != nil {
+			fmt.Printf("Error disconnecting from db: %v\n", err)
+		}
+	}()
 
 	action := roptions.Action
 	var new_value bool
@@ -121,6 +129,10 @@ func ignoreNodes(roptions IgnoreNodesOptions) (*IgnoreNodesResponse, error) {
 	filter := bson.D{{Key: "external_id", Value: roptions.NodeId}}
 
 	result, err := collection.UpdateOne(ctx, filter, update)
+
+	if err != nil {
+		return nil, fmt.Errorf("Error updating db: %w", err)
+	}
 
 	if result.MatchedCount != 1 {
 		return nil, fmt.Errorf("Zero or too many matching nodes: %d", result.MatchedCount)

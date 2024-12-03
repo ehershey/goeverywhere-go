@@ -45,7 +45,17 @@ func HandleOneJob() error {
 	ctx, cancel := context.WithTimeout(context.Background(), job_max_run_time_seconds*time.Second)
 	defer cancel()
 	client, collection, err := getJobsCollection()
-	defer client.Disconnect(ctx)
+	if err != nil {
+		wrappedErr := fmt.Errorf("Error getting Jobs Collection: %w", err)
+		log.Println("got an error:", wrappedErr)
+		return wrappedErr
+	}
+	defer func() {
+		err := client.Disconnect(ctx)
+		if err != nil {
+			fmt.Printf("Error disconnecting from db: %v\n", err)
+		}
+	}()
 
 	var job RefreshNodesJob
 

@@ -20,7 +20,6 @@ func savePosition(ctx context.Context, entry_source string, req *proto.SavePosit
 	}
 
 	point := req.Coords
-	log.Printf("savePosition point: %v\n", point)
 
 	if point == nil {
 		err = errors.New("missing point in savePosition()")
@@ -42,21 +41,16 @@ func savePosition(ctx context.Context, entry_source string, req *proto.SavePosit
 		log.Println("got an error:", wrappedErr)
 		return nil, wrappedErr
 	}
-	fmt.Printf("gps_log_point: %v\n", gps_log_point)
-	fmt.Printf("here 2: gps_log_point.EntrySource: %s\n", gps_log_point.EntrySource)
 	result, err := collection.InsertOne(ctx, gps_log_point)
 	if err != nil {
 		wrappedErr := fmt.Errorf("Error inserting point: %w", err)
 		log.Println("got an error:", wrappedErr)
 		return nil, wrappedErr
 	}
-	fmt.Printf("Inserted document with _id: %v\n", result.InsertedID)
 	point.Id = result.InsertedID.(primitive.ObjectID).Hex()
 
 	proto := &proto.SavePositionResponse{Status: "OK", SavedPoint: point}
-	fmt.Printf("proto: %v\n", proto)
 	r := savePositionResponse{raw: proto}
-	fmt.Printf("r: %v\n", r)
 	return &r, nil
 
 }
@@ -84,7 +78,6 @@ func validatePoint(point *proto.Point) error {
 func (request_point *savePositionPoint) to_gps_log_point() (*gps_log_point, error) {
 
 	point := request_point.raw
-	fmt.Printf("here 1: point.EntrySource: %s\n", point.EntrySource)
 
 	return &gps_log_point{
 		EntrySource:      point.EntrySource,

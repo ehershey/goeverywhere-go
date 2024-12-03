@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"iter"
 	"log"
 	"net/http"
 	"time"
@@ -13,7 +15,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"google.golang.org/genproto/googleapis/type/latlng"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 const points_collection_name = "gps_log"
@@ -54,13 +57,13 @@ func GetPointsHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(stats)
+	if err := json.NewEncoder(w).Encode(stats); err != nil {
+		fmt.Printf("Error encoding points: %v\n", err)
+	}
 
 }
 
-func getPoints(ctx context.Context, req *proto.GetPointsRequest) (*proto.GetPointsResponse, error) {
-	// ctx, cancel := context.WithTimeout(context.Background(), default_timeout_seconds*time.Second)
-	// defer cancel()
+func getPoints(ctx context.Context, req *proto.GetPointsRequest) (iter.Seq2[*proto.GetPointsResponse, error], error) {
 
 	client, collection, err := getPointsCollection()
 	if err != nil {
@@ -68,85 +71,79 @@ func getPoints(ctx context.Context, req *proto.GetPointsRequest) (*proto.GetPoin
 		return nil, wrappedErr
 	}
 
-	defer client.Disconnect(ctx)
+	defer func() {
+		err := client.Disconnect(ctx)
+		if err != nil {
+			fmt.Printf("Error disconnecting from db: %v\n", err)
+		}
+	}()
 
 	log.Println("got db client and collection ref")
+	//return func(yield func(V, error) bool) {
 
-	oldest_find_opts := options.FindOne()
-	// find_opts.SetLimit(1)
-	empty_query := bson.D{}
-	oldest_sort := empty_query // bson.D{{"entry_date", 1}}
-	oldest_find_opts.SetSort(oldest_sort)
-	//find_opts.SetSort(bson.D{{Key: "entry_date", Value: -1}})
-	//query := bson.M{"entry_date": bson.M{"$exists": true}}
-	log.Printf("empty_query: %v\n", empty_query)
-	log.Printf("oldest_sort: %v\n", oldest_sort)
+	return func(yield func(*proto.GetPointsResponse, error) bool) {
+		// ctx, cancel := context.WithTimeout(context.Background(), default_timeout_seconds*time.Second)
+		// defer cancel()
 
-	var oldestPoint gps_log_point
-	err = collection.FindOne(ctx, empty_query, oldest_find_opts).Decode(&oldestPoint)
-
-	if err != nil {
-		wrappedErr := fmt.Errorf("got an error calling collection.FindOne(...) for oldest point: %w", err)
-		return nil, wrappedErr
-	}
-
-	log.Printf("oldestPoint: %v\n", oldestPoint)
-
-	oldestPointTimestamp := oldestPoint.GetEntryDate()
-
-	log.Printf("oldestPointTimestamp: %v\n", oldestPointTimestamp)
-
-	newest_find_opts := options.FindOne()
-	newest_sort := bson.D{{Key: "entry_date", Value: -1}}
-	newest_find_opts.SetSort(newest_sort)
-
-	log.Printf("newest_sort: %v\n", newest_sort)
-
-	var newestPoint gps_log_point
-	err = collection.FindOne(ctx, empty_query, newest_find_opts).Decode(&newestPoint)
-
-	if err != nil {
-		wrappedErr := fmt.Errorf("got an error calling collection.FindOne(...) for newest point: %w", err)
-		return nil, wrappedErr
-	}
-	log.Printf("newestPoint: %v\n", newestPoint)
-
-	newestPointTimestamp := newestPoint.GetEntryDate()
-
-	log.Printf("newestPointTimestamp: %v\n", newestPointTimestamp)
-
-	PointCount, err := collection.EstimatedDocumentCount(ctx)
-
-	log.Printf("PointCount: %v\n", PointCount)
-
-	if err != nil {
-		wrappedErr := fmt.Errorf("error getting PointCount: %w", err)
-		return nil, wrappedErr
-	}
-
-	log.Printf("Making distinct query with empty_query: %v\n", empty_query)
-	distinct, err := collection.Distinct(ctx, "entry_source", empty_query)
-
-	log.Printf("distinct: %v\n", distinct)
-
-	EntrySources := []string{}
-
-	for _, result := range distinct {
-		if result != nil {
-			EntrySources = append(EntrySources, result.(string))
+		if req.MinLon > req.MaxLon {
+			yield(nil, errors.New("min_lon must be <= max_lon"))
+			return
 		}
-	}
-	log.Printf("EntrySources: %v\n", EntrySources)
+		if req.MinLat > req.MaxLat {
+			yield(nil, errors.New("min_lat must be <= max_lat"))
+			return
+		}
 
-	if err != nil {
-		wrappedErr := fmt.Errorf("got an error getting entry sources: %w", err)
-		return nil, wrappedErr
-	}
+		var ands []bson.M
 
-	response := &proto.GetPointsResponse{}
-	log.Printf("response: %v\n", response)
+		if req.MinLon != 0 || req.MinLat != 0 || req.MaxLon != 0 || req.MaxLat != 0 {
+			box_query := bson.M{"loc": bson.M{"$geoIntersects": bson.M{"$geometry": bson.M{"type": "Polygon",
+				"coordinates": bson.A{bson.A{bson.A{req.MinLon,
+					req.MinLat},
+					bson.A{req.MinLon,
+						req.MaxLat},
+					bson.A{req.MaxLon,
+						req.MaxLat},
+					bson.A{req.MaxLon,
+						req.MinLat},
+					bson.A{req.MinLon,
+						req.MinLat}}},
+			},
+			},
+			},
+			}
 
-	return response, nil
+			ands = append(ands, box_query)
+		}
+
+		query := bson.D{{Key: "MaxLat", Value: req.MaxLat}}
+		cursor, err := collection.Find(ctx, query)
+
+		if err != nil {
+			wrappedErr := fmt.Errorf("got an error calling collection.FindMany(...) for points: %w", err)
+			yield(nil, wrappedErr)
+			return
+		}
+		for cursor.Next(ctx) {
+			var result *gps_log_point
+			if err := cursor.Decode(&result); err != nil {
+				log.Fatal(err)
+			}
+
+			latLng := latlng.LatLng{Longitude: result.GetLon(), Latitude: result.GetLat()}
+			geom := proto.Geometry{Coordinates: &latLng}
+
+			point := proto.Point{Loc: &geom, EntryDate: timestamppb.New(result.GetEntryDate())}
+
+			if !yield(&proto.GetPointsResponse{Point: &point}, nil) {
+				return
+			}
+			if err := cursor.Err(); err != nil {
+				log.Fatal(err)
+			}
+		}
+
+	}, nil
 }
 
 // copied from livetrack_db.go

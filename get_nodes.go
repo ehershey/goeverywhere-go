@@ -151,7 +151,9 @@ func GetNodesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h := md5.New()
-	io.WriteString(h, fmt.Sprintf("%s%f%f%f%f%f%f%f%d", roptions.BoundString, roptions.MinLon, roptions.MaxLon, roptions.MinLat, roptions.MaxLat, roptions.FromLat, roptions.FromLon, roptions.MaxDistance, roptions.NodeId))
+	if _, err := io.WriteString(h, fmt.Sprintf("%s%f%f%f%f%f%f%f%d", roptions.BoundString, roptions.MinLon, roptions.MaxLon, roptions.MinLat, roptions.MaxLat, roptions.FromLat, roptions.FromLon, roptions.MaxDistance, roptions.NodeId)); err != nil {
+		fmt.Printf("Error writing hash string: %v\n", err)
+	}
 	requestHash := fmt.Sprintf("%x", h.Sum(nil))
 
 	totalcount, err := getTotalCount()
@@ -178,13 +180,19 @@ func GetNodesHandler(w http.ResponseWriter, r *http.Request) {
 		Limit:       roptions.Limit,
 		Setsize:     int(totalcount)}
 
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		fmt.Printf("Error encoding response: %v\n", err)
+	}
 
 }
 
 func DecodeResponse(jsondata []byte) (error, *getNodesResponse) {
 	var response getNodesResponse
-	json.Unmarshal(jsondata, &response)
+	if err := json.Unmarshal(jsondata, &response); err != nil {
+		wrappedErr := fmt.Errorf("Error unmarshaling json data: %w\n", err)
+		return wrappedErr, &response
+	}
+
 	return nil, &response
 }
 
@@ -204,7 +212,13 @@ func getTotalCount() (int64, error) {
 		log.Println("got an error:", err)
 		return 0, err
 	}
-	defer client.Disconnect(ctx)
+
+	defer func() {
+		err := client.Disconnect(ctx)
+		if err != nil {
+			fmt.Printf("Error disconnecting from db: %v\n", err)
+		}
+	}()
 
 	return collection.EstimatedDocumentCount(ctx)
 }
@@ -218,7 +232,12 @@ func getNodes(roptions GetNodesOptions) ([]Node, error) {
 		log.Println("got an error:", err)
 		return nil, err
 	}
-	defer client.Disconnect(ctx)
+	defer func() {
+		err := client.Disconnect(ctx)
+		if err != nil {
+			fmt.Printf("Error disconnecting from db: %v\n", err)
+		}
+	}()
 
 	if roptions.MinLon > roptions.MaxLon {
 		return nil, errors.New("min_lon must be <= max_lon")
@@ -274,7 +293,7 @@ func getNodes(roptions GetNodesOptions) ([]Node, error) {
 
 	// Fields generally only present in db when == true
 	// defaults are to return only priority nodes that aren't ignored
-	if roptions.AllowIgnored == false {
+	if !roptions.AllowIgnored {
 		ands = append(ands, bson.M{"ignored": bson.M{"$ne": true}})
 	}
 
@@ -285,7 +304,7 @@ func getNodes(roptions GetNodesOptions) ([]Node, error) {
 		ands = append(ands, bson.M{"deactivated": bson.M{"$ne": true}})
 	}
 
-	if roptions.RequirePriority == true {
+	if roptions.RequirePriority {
 		ands = append(ands, bson.M{"priority": true})
 	}
 

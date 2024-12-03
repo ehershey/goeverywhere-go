@@ -53,7 +53,9 @@ func GetStatsHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(stats)
+	if err := json.NewEncoder(w).Encode(stats); err != nil {
+		fmt.Printf("Error encoding stats: %v\n", err)
+	}
 
 }
 
@@ -67,7 +69,12 @@ func getStats(ctx context.Context, req *proto.GetStatsRequest) (*proto.GetStatsR
 		return nil, wrappedErr
 	}
 
-	defer client.Disconnect(ctx)
+	defer func() {
+		err := client.Disconnect(ctx)
+		if err != nil {
+			fmt.Printf("Error disconnecting from db: %v\n", err)
+		}
+	}()
 
 	log.Println("got db client and collection ref")
 
@@ -75,8 +82,6 @@ func getStats(ctx context.Context, req *proto.GetStatsRequest) (*proto.GetStatsR
 	empty_query := bson.D{}
 	oldest_sort := bson.D{{Key: "entry_date", Value: 1}}
 	oldest_find_opts.SetSort(oldest_sort)
-	log.Printf("empty_query: %v\n", empty_query)
-	log.Printf("oldest_sort: %v\n", oldest_sort)
 
 	var oldestPoint gps_log_point
 	err = collection.FindOne(ctx, empty_query, oldest_find_opts).Decode(&oldestPoint)
@@ -86,17 +91,11 @@ func getStats(ctx context.Context, req *proto.GetStatsRequest) (*proto.GetStatsR
 		return nil, wrappedErr
 	}
 
-	log.Printf("oldestPoint: %v\n", oldestPoint)
-
 	oldestPointTimestamp := oldestPoint.GetEntryDate()
-
-	log.Printf("oldestPointTimestamp: %v\n", oldestPointTimestamp)
 
 	newest_find_opts := options.FindOne()
 	newest_sort := bson.D{{Key: "entry_date", Value: -1}}
 	newest_find_opts.SetSort(newest_sort)
-
-	log.Printf("newest_sort: %v\n", newest_sort)
 
 	var newestPoint gps_log_point
 	err = collection.FindOne(ctx, empty_query, newest_find_opts).Decode(&newestPoint)
@@ -105,25 +104,17 @@ func getStats(ctx context.Context, req *proto.GetStatsRequest) (*proto.GetStatsR
 		wrappedErr := fmt.Errorf("got an error calling collection.FindOne(...) for newest point: %w", err)
 		return nil, wrappedErr
 	}
-	log.Printf("newestPoint: %v\n", newestPoint)
 
 	newestPointTimestamp := newestPoint.GetEntryDate()
 
-	log.Printf("newestPointTimestamp: %v\n", newestPointTimestamp)
-
 	PointCount, err := collection.EstimatedDocumentCount(ctx)
-
-	log.Printf("PointCount: %v\n", PointCount)
 
 	if err != nil {
 		wrappedErr := fmt.Errorf("error getting PointCount: %w", err)
 		return nil, wrappedErr
 	}
 
-	log.Printf("Making distinct query with empty_query: %v\n", empty_query)
 	distinct, err := collection.Distinct(ctx, "entry_source", empty_query)
-
-	log.Printf("distinct: %v\n", distinct)
 
 	EntrySources := []string{}
 
@@ -132,7 +123,6 @@ func getStats(ctx context.Context, req *proto.GetStatsRequest) (*proto.GetStatsR
 			EntrySources = append(EntrySources, result.(string))
 		}
 	}
-	log.Printf("EntrySources: %v\n", EntrySources)
 
 	if err != nil {
 		wrappedErr := fmt.Errorf("got an error getting entry sources: %w", err)
@@ -145,7 +135,6 @@ func getStats(ctx context.Context, req *proto.GetStatsRequest) (*proto.GetStatsR
 		PointCount:           uint32(PointCount),
 		EntrySources:         EntrySources,
 	}
-	log.Printf("response: %v\n", response)
 
 	return response, nil
 }

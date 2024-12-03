@@ -328,7 +328,9 @@ func TestGetNodesHandlerLimit(t *testing.T) {
 		t.Errorf("resp.Header.Get(\"Content-Type\") = %v; want \"application/json\"", resp.Header.Get("Content-Type"))
 	}
 	var responsejson map[string]interface{}
-	json.Unmarshal([]byte(body), &responsejson)
+	if err := json.Unmarshal([]byte(body), &responsejson); err != nil {
+		fmt.Printf("Error unmarshaling response: %v\n", err)
+	}
 
 	returnedCount := len(responsejson["points"].([]interface{}))
 	if returnedCount != limit {
@@ -384,7 +386,9 @@ func TestGetNodesHandler(t *testing.T) {
 		t.Errorf("resp.Header.Get(\"Content-Type\") = %v; want \"application/json\"", resp.Header.Get("Content-Type"))
 	}
 	var responsejson map[string]interface{}
-	json.Unmarshal([]byte(body), &responsejson)
+	if err := json.Unmarshal([]byte(body), &responsejson); err != nil {
+		t.Errorf("Error unmarshaling response: %v\n", err)
+	}
 
 	if responsejson["min_lon"] != 0.0 {
 		t.Errorf("Response JSON doesn't contain 'min_lon' key set to -80: (%f) / %s", responsejson["min_lon"], body[0:80])

@@ -193,15 +193,20 @@ func RefreshNodesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		fmt.Printf("Error encoding response: %v\n", err)
+	}
 
 }
 
-func decodeRefreshNodesResponse(jsondata []byte) (*RefreshNodesResponse, error) {
-	var response RefreshNodesResponse
-	json.Unmarshal(jsondata, &response)
-	return &response, nil
-}
+// func decodeRefreshNodesResponse(jsondata []byte) (*RefreshNodesResponse, error) {
+// var response RefreshNodesResponse
+// if err := json.Unmarshal(jsondata, &response); err != nil {
+// wrappedErr := fmt.Errorf("Error unmarshaling response: %w\n", err)
+// return &response, wrappedErr
+// }
+// return &response, nil
+// }
 
 // RefreshNodes kicks off a node refresh with the given options
 // it returns a jobid
