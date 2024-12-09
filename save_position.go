@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"ernie.org/goe/proto"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -71,6 +72,18 @@ func validatePoint(point *proto.Point) error {
 	if point.EntryDate == nil {
 		return fmt.Errorf("Missing EntryDate in Point: %w", validationError)
 	}
+	MAX_LOCATION_AGE := time.Second * 86400
+	now := time.Now()
+	fmt.Printf("point.EntryDate: %v\n", point.EntryDate)
+	pointTimestamp := point.EntryDate.AsTime()
+	fmt.Printf("pointTimestamp: %v\n", pointTimestamp)
+	pointTimestampAge := now.Sub(pointTimestamp)
+	//oldest_possible_timestamp := now.Sub(time.Duration(int(time.Second) * MAX_LOCATION_AGE_SECS))
+	//if point.EntryDate.AsTime().Before(oldest_possible_timestamp) {
+	if pointTimestampAge > MAX_LOCATION_AGE {
+		return fmt.Errorf("EntryDate too old in Point (%v - %v > %v): %w", now, pointTimestamp, MAX_LOCATION_AGE, validationError)
+	}
+
 	return nil
 }
 

@@ -203,6 +203,32 @@ func TestSavePositionNoTime(t *testing.T) {
 	}
 }
 
+func TestSavePositionOldTime(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	randLon := get_rand_lon()
+	randLat := get_rand_lat()
+
+	randLatLng := latlng.LatLng{Longitude: randLon, Latitude: randLat}
+	geom := proto.Geometry{Coordinates: &randLatLng}
+
+	testOldDate := "Jan 2, 2006 at 3:04pm (MST)"
+	oldTime, err := time.Parse(testOldDate, testOldDate)
+	if err != nil {
+		t.Fatalf("Error parsing test date (%s): %v", testOldDate, err)
+	}
+	point := proto.Point{Loc: &geom, EntryDate: timestamppb.New(oldTime)}
+
+	test_request := &proto.SavePositionRequest{Coords: &point}
+
+	test_entry_source := get_test_entry_source()
+	test_response, err := savePosition(ctx, test_entry_source, test_request)
+	if err == nil || !errors.Is(err, validationError) {
+		t.Fatalf("Didn't get a validation error but expected one for bad old timestamp passed in (test_response: %v, %v)", test_response, err)
+	}
+}
+
 func TestSavePositionZeroFields(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
