@@ -13,7 +13,7 @@ import (
 
 const strava_activities_collection_name = "activities"
 
-const default_polyline_limit = 1000
+const default_polyline_limit = 100000
 
 //const default_timeout_seconds = 60
 
