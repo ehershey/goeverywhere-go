@@ -41,6 +41,10 @@ const (
 	GOEServiceGetPolylinesProcedure = "/GOEService/GetPolylines"
 	// GOEServiceGetPointsProcedure is the fully-qualified name of the GOEService's GetPoints RPC.
 	GOEServiceGetPointsProcedure = "/GOEService/GetPoints"
+	// GOEServiceGetBookmarksProcedure is the fully-qualified name of the GOEService's GetBookmarks RPC.
+	GOEServiceGetBookmarksProcedure = "/GOEService/GetBookmarks"
+	// GOEServiceSaveBookmarkProcedure is the fully-qualified name of the GOEService's SaveBookmark RPC.
+	GOEServiceSaveBookmarkProcedure = "/GOEService/SaveBookmark"
 	// GOEServiceSavePositionProcedure is the fully-qualified name of the GOEService's SavePosition RPC.
 	GOEServiceSavePositionProcedure = "/GOEService/SavePosition"
 )
@@ -51,6 +55,8 @@ var (
 	gOEServiceGetStatsMethodDescriptor     = gOEServiceServiceDescriptor.Methods().ByName("GetStats")
 	gOEServiceGetPolylinesMethodDescriptor = gOEServiceServiceDescriptor.Methods().ByName("GetPolylines")
 	gOEServiceGetPointsMethodDescriptor    = gOEServiceServiceDescriptor.Methods().ByName("GetPoints")
+	gOEServiceGetBookmarksMethodDescriptor = gOEServiceServiceDescriptor.Methods().ByName("GetBookmarks")
+	gOEServiceSaveBookmarkMethodDescriptor = gOEServiceServiceDescriptor.Methods().ByName("SaveBookmark")
 	gOEServiceSavePositionMethodDescriptor = gOEServiceServiceDescriptor.Methods().ByName("SavePosition")
 )
 
@@ -59,6 +65,8 @@ type GOEServiceClient interface {
 	GetStats(context.Context, *connect.Request[proto.GetStatsRequest]) (*connect.Response[proto.GetStatsResponse], error)
 	GetPolylines(context.Context, *connect.Request[proto.GetPolylinesRequest]) (*connect.ServerStreamForClient[proto.GetPolylinesResponse], error)
 	GetPoints(context.Context, *connect.Request[proto.GetPointsRequest]) (*connect.ServerStreamForClient[proto.GetPointsResponse], error)
+	GetBookmarks(context.Context, *connect.Request[proto.GetBookmarksRequest]) (*connect.ServerStreamForClient[proto.GetBookmarksResponse], error)
+	SaveBookmark(context.Context, *connect.Request[proto.SaveBookmarkRequest]) (*connect.Response[proto.SaveBookmarkResponse], error)
 	SavePosition(context.Context, *connect.Request[proto.SavePositionRequest]) (*connect.Response[proto.SavePositionResponse], error)
 }
 
@@ -90,6 +98,18 @@ func NewGOEServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 			connect.WithSchema(gOEServiceGetPointsMethodDescriptor),
 			connect.WithClientOptions(opts...),
 		),
+		getBookmarks: connect.NewClient[proto.GetBookmarksRequest, proto.GetBookmarksResponse](
+			httpClient,
+			baseURL+GOEServiceGetBookmarksProcedure,
+			connect.WithSchema(gOEServiceGetBookmarksMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		saveBookmark: connect.NewClient[proto.SaveBookmarkRequest, proto.SaveBookmarkResponse](
+			httpClient,
+			baseURL+GOEServiceSaveBookmarkProcedure,
+			connect.WithSchema(gOEServiceSaveBookmarkMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 		savePosition: connect.NewClient[proto.SavePositionRequest, proto.SavePositionResponse](
 			httpClient,
 			baseURL+GOEServiceSavePositionProcedure,
@@ -104,6 +124,8 @@ type gOEServiceClient struct {
 	getStats     *connect.Client[proto.GetStatsRequest, proto.GetStatsResponse]
 	getPolylines *connect.Client[proto.GetPolylinesRequest, proto.GetPolylinesResponse]
 	getPoints    *connect.Client[proto.GetPointsRequest, proto.GetPointsResponse]
+	getBookmarks *connect.Client[proto.GetBookmarksRequest, proto.GetBookmarksResponse]
+	saveBookmark *connect.Client[proto.SaveBookmarkRequest, proto.SaveBookmarkResponse]
 	savePosition *connect.Client[proto.SavePositionRequest, proto.SavePositionResponse]
 }
 
@@ -122,6 +144,16 @@ func (c *gOEServiceClient) GetPoints(ctx context.Context, req *connect.Request[p
 	return c.getPoints.CallServerStream(ctx, req)
 }
 
+// GetBookmarks calls GOEService.GetBookmarks.
+func (c *gOEServiceClient) GetBookmarks(ctx context.Context, req *connect.Request[proto.GetBookmarksRequest]) (*connect.ServerStreamForClient[proto.GetBookmarksResponse], error) {
+	return c.getBookmarks.CallServerStream(ctx, req)
+}
+
+// SaveBookmark calls GOEService.SaveBookmark.
+func (c *gOEServiceClient) SaveBookmark(ctx context.Context, req *connect.Request[proto.SaveBookmarkRequest]) (*connect.Response[proto.SaveBookmarkResponse], error) {
+	return c.saveBookmark.CallUnary(ctx, req)
+}
+
 // SavePosition calls GOEService.SavePosition.
 func (c *gOEServiceClient) SavePosition(ctx context.Context, req *connect.Request[proto.SavePositionRequest]) (*connect.Response[proto.SavePositionResponse], error) {
 	return c.savePosition.CallUnary(ctx, req)
@@ -132,6 +164,8 @@ type GOEServiceHandler interface {
 	GetStats(context.Context, *connect.Request[proto.GetStatsRequest]) (*connect.Response[proto.GetStatsResponse], error)
 	GetPolylines(context.Context, *connect.Request[proto.GetPolylinesRequest], *connect.ServerStream[proto.GetPolylinesResponse]) error
 	GetPoints(context.Context, *connect.Request[proto.GetPointsRequest], *connect.ServerStream[proto.GetPointsResponse]) error
+	GetBookmarks(context.Context, *connect.Request[proto.GetBookmarksRequest], *connect.ServerStream[proto.GetBookmarksResponse]) error
+	SaveBookmark(context.Context, *connect.Request[proto.SaveBookmarkRequest]) (*connect.Response[proto.SaveBookmarkResponse], error)
 	SavePosition(context.Context, *connect.Request[proto.SavePositionRequest]) (*connect.Response[proto.SavePositionResponse], error)
 }
 
@@ -159,6 +193,18 @@ func NewGOEServiceHandler(svc GOEServiceHandler, opts ...connect.HandlerOption) 
 		connect.WithSchema(gOEServiceGetPointsMethodDescriptor),
 		connect.WithHandlerOptions(opts...),
 	)
+	gOEServiceGetBookmarksHandler := connect.NewServerStreamHandler(
+		GOEServiceGetBookmarksProcedure,
+		svc.GetBookmarks,
+		connect.WithSchema(gOEServiceGetBookmarksMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	gOEServiceSaveBookmarkHandler := connect.NewUnaryHandler(
+		GOEServiceSaveBookmarkProcedure,
+		svc.SaveBookmark,
+		connect.WithSchema(gOEServiceSaveBookmarkMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	gOEServiceSavePositionHandler := connect.NewUnaryHandler(
 		GOEServiceSavePositionProcedure,
 		svc.SavePosition,
@@ -173,6 +219,10 @@ func NewGOEServiceHandler(svc GOEServiceHandler, opts ...connect.HandlerOption) 
 			gOEServiceGetPolylinesHandler.ServeHTTP(w, r)
 		case GOEServiceGetPointsProcedure:
 			gOEServiceGetPointsHandler.ServeHTTP(w, r)
+		case GOEServiceGetBookmarksProcedure:
+			gOEServiceGetBookmarksHandler.ServeHTTP(w, r)
+		case GOEServiceSaveBookmarkProcedure:
+			gOEServiceSaveBookmarkHandler.ServeHTTP(w, r)
 		case GOEServiceSavePositionProcedure:
 			gOEServiceSavePositionHandler.ServeHTTP(w, r)
 		default:
@@ -194,6 +244,14 @@ func (UnimplementedGOEServiceHandler) GetPolylines(context.Context, *connect.Req
 
 func (UnimplementedGOEServiceHandler) GetPoints(context.Context, *connect.Request[proto.GetPointsRequest], *connect.ServerStream[proto.GetPointsResponse]) error {
 	return connect.NewError(connect.CodeUnimplemented, errors.New("GOEService.GetPoints is not implemented"))
+}
+
+func (UnimplementedGOEServiceHandler) GetBookmarks(context.Context, *connect.Request[proto.GetBookmarksRequest], *connect.ServerStream[proto.GetBookmarksResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("GOEService.GetBookmarks is not implemented"))
+}
+
+func (UnimplementedGOEServiceHandler) SaveBookmark(context.Context, *connect.Request[proto.SaveBookmarkRequest]) (*connect.Response[proto.SaveBookmarkResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("GOEService.SaveBookmark is not implemented"))
 }
 
 func (UnimplementedGOEServiceHandler) SavePosition(context.Context, *connect.Request[proto.SavePositionRequest]) (*connect.Response[proto.SavePositionResponse], error) {

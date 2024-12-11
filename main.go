@@ -27,7 +27,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 350
+const autoupdate_version = 357
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_SECS = 10
 const WRITE_TIMEOUT_SECS = 10
@@ -248,6 +248,21 @@ func (s *gOEServiceServer) GetPoints(
 	stream *connect.ServerStream[proto.GetPointsResponse]) error {
 	log.Println("GetPoints request headers: ", req.Header())
 	return fmt.Errorf("Unimplemented")
+}
+
+func (s *gOEServiceServer) GetBookmarks(
+	ctx context.Context,
+	req *connect.Request[proto.GetBookmarksRequest],
+	stream *connect.ServerStream[proto.GetBookmarksResponse]) error {
+	log.Println("GetBookmarks request headers: ", req.Header())
+	return fmt.Errorf("Unimplemented")
+}
+
+func (s *gOEServiceServer) SaveBookmark(
+	ctx context.Context,
+	req *connect.Request[proto.SaveBookmarkRequest]) (*connect.Response[proto.SaveBookmarkResponse], error) {
+	log.Println("SaveBookmark request headers: ", req.Header())
+	return nil, fmt.Errorf("Unimplemented")
 }
 
 func (s *gOEServiceServer) GetPolylines(
