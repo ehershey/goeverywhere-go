@@ -28,21 +28,21 @@ type GetPointsResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	MinTimestamp *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=min_timestamp,json=minTimestamp,proto3" json:"min_timestamp,omitempty"`
-	MaxTimestamp *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=max_timestamp,json=maxTimestamp,proto3" json:"max_timestamp,omitempty"`
-	PointCount   uint32                 `protobuf:"varint,3,opt,name=point_count,json=pointCount,proto3" json:"point_count,omitempty"`
-	EntrySources []string               `protobuf:"bytes,4,rep,name=entry_sources,json=entrySources,proto3" json:"entry_sources,omitempty"`
-	MinLon       float32                `protobuf:"fixed32,5,opt,name=min_lon,json=minLon,proto3" json:"min_lon,omitempty"`
-	MinLat       float32                `protobuf:"fixed32,6,opt,name=min_lat,json=minLat,proto3" json:"min_lat,omitempty"`
-	MaxLon       float32                `protobuf:"fixed32,7,opt,name=max_lon,json=maxLon,proto3" json:"max_lon,omitempty"`
-	MaxLat       float32                `protobuf:"fixed32,8,opt,name=max_lat,json=maxLat,proto3" json:"max_lat,omitempty"`
-	SkippedCount uint32                 `protobuf:"varint,9,opt,name=skipped_count,json=skippedCount,proto3" json:"skipped_count,omitempty"`
-	Rid          string                 `protobuf:"bytes,10,opt,name=rid,proto3" json:"rid,omitempty"`
-	BoundString  string                 `protobuf:"bytes,11,opt,name=bound_string,json=boundString,proto3" json:"bound_string,omitempty"`
-	EntrySource  map[string]uint32      `protobuf:"bytes,12,rep,name=entry_source,json=entrySource,proto3" json:"entry_source,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"varint,2,opt,name=value,proto3"`
-	Setsize      uint32                 `protobuf:"varint,13,opt,name=setsize,proto3" json:"setsize,omitempty"`
-	Limit        uint32                 `protobuf:"varint,14,opt,name=limit,proto3" json:"limit,omitempty"`
-	Point        *Point                 `protobuf:"bytes,15,opt,name=point,proto3" json:"point,omitempty"`
+	MinTimestamp *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=min_timestamp,json=minTimestamp" json:"min_timestamp,omitempty"`
+	MaxTimestamp *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=max_timestamp,json=maxTimestamp" json:"max_timestamp,omitempty"`
+	PointCount   *uint32                `protobuf:"varint,3,opt,name=point_count,json=pointCount" json:"point_count,omitempty"`
+	EntrySources []string               `protobuf:"bytes,4,rep,name=entry_sources,json=entrySources" json:"entry_sources,omitempty"`
+	MinLon       *float32               `protobuf:"fixed32,5,opt,name=min_lon,json=minLon" json:"min_lon,omitempty"`
+	MinLat       *float32               `protobuf:"fixed32,6,opt,name=min_lat,json=minLat" json:"min_lat,omitempty"`
+	MaxLon       *float32               `protobuf:"fixed32,7,opt,name=max_lon,json=maxLon" json:"max_lon,omitempty"`
+	MaxLat       *float32               `protobuf:"fixed32,8,opt,name=max_lat,json=maxLat" json:"max_lat,omitempty"`
+	SkippedCount *uint32                `protobuf:"varint,9,opt,name=skipped_count,json=skippedCount" json:"skipped_count,omitempty"`
+	Rid          *string                `protobuf:"bytes,10,opt,name=rid" json:"rid,omitempty"`
+	BoundString  *string                `protobuf:"bytes,11,opt,name=bound_string,json=boundString" json:"bound_string,omitempty"`
+	EntrySource  map[string]uint32      `protobuf:"bytes,12,rep,name=entry_source,json=entrySource" json:"entry_source,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
+	Setsize      *uint32                `protobuf:"varint,13,opt,name=setsize" json:"setsize,omitempty"`
+	Limit        *uint32                `protobuf:"varint,14,opt,name=limit" json:"limit,omitempty"`
+	Point        *Point                 `protobuf:"bytes,15,opt,name=point" json:"point,omitempty"`
 }
 
 func (x *GetPointsResponse) Reset() {
@@ -90,8 +90,8 @@ func (x *GetPointsResponse) GetMaxTimestamp() *timestamppb.Timestamp {
 }
 
 func (x *GetPointsResponse) GetPointCount() uint32 {
-	if x != nil {
-		return x.PointCount
+	if x != nil && x.PointCount != nil {
+		return *x.PointCount
 	}
 	return 0
 }
@@ -104,50 +104,50 @@ func (x *GetPointsResponse) GetEntrySources() []string {
 }
 
 func (x *GetPointsResponse) GetMinLon() float32 {
-	if x != nil {
-		return x.MinLon
+	if x != nil && x.MinLon != nil {
+		return *x.MinLon
 	}
 	return 0
 }
 
 func (x *GetPointsResponse) GetMinLat() float32 {
-	if x != nil {
-		return x.MinLat
+	if x != nil && x.MinLat != nil {
+		return *x.MinLat
 	}
 	return 0
 }
 
 func (x *GetPointsResponse) GetMaxLon() float32 {
-	if x != nil {
-		return x.MaxLon
+	if x != nil && x.MaxLon != nil {
+		return *x.MaxLon
 	}
 	return 0
 }
 
 func (x *GetPointsResponse) GetMaxLat() float32 {
-	if x != nil {
-		return x.MaxLat
+	if x != nil && x.MaxLat != nil {
+		return *x.MaxLat
 	}
 	return 0
 }
 
 func (x *GetPointsResponse) GetSkippedCount() uint32 {
-	if x != nil {
-		return x.SkippedCount
+	if x != nil && x.SkippedCount != nil {
+		return *x.SkippedCount
 	}
 	return 0
 }
 
 func (x *GetPointsResponse) GetRid() string {
-	if x != nil {
-		return x.Rid
+	if x != nil && x.Rid != nil {
+		return *x.Rid
 	}
 	return ""
 }
 
 func (x *GetPointsResponse) GetBoundString() string {
-	if x != nil {
-		return x.BoundString
+	if x != nil && x.BoundString != nil {
+		return *x.BoundString
 	}
 	return ""
 }
@@ -160,15 +160,15 @@ func (x *GetPointsResponse) GetEntrySource() map[string]uint32 {
 }
 
 func (x *GetPointsResponse) GetSetsize() uint32 {
-	if x != nil {
-		return x.Setsize
+	if x != nil && x.Setsize != nil {
+		return *x.Setsize
 	}
 	return 0
 }
 
 func (x *GetPointsResponse) GetLimit() uint32 {
-	if x != nil {
-		return x.Limit
+	if x != nil && x.Limit != nil {
+		return *x.Limit
 	}
 	return 0
 }
@@ -185,16 +185,16 @@ type GetPointsRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	MinLon      float32                `protobuf:"fixed32,1,opt,name=min_lon,json=minLon,proto3" json:"min_lon,omitempty"`
-	MaxLon      float32                `protobuf:"fixed32,2,opt,name=max_lon,json=maxLon,proto3" json:"max_lon,omitempty"`
-	MinLat      float32                `protobuf:"fixed32,3,opt,name=min_lat,json=minLat,proto3" json:"min_lat,omitempty"`
-	MaxLat      float32                `protobuf:"fixed32,4,opt,name=max_lat,json=maxLat,proto3" json:"max_lat,omitempty"`
-	BoundString string                 `protobuf:"bytes,5,opt,name=bound_string,json=boundString,proto3" json:"bound_string,omitempty"`
-	Rind        string                 `protobuf:"bytes,6,opt,name=rind,proto3" json:"rind,omitempty"`
-	From        *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=from,proto3" json:"from,omitempty"`
-	To          *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=to,proto3" json:"to,omitempty"`
-	Limit       uint32                 `protobuf:"varint,9,opt,name=limit,proto3" json:"limit,omitempty"`
-	NoSkip      bool                   `protobuf:"varint,10,opt,name=no_skip,json=noSkip,proto3" json:"no_skip,omitempty"`
+	MinLon      *float32               `protobuf:"fixed32,1,opt,name=min_lon,json=minLon" json:"min_lon,omitempty"`
+	MaxLon      *float32               `protobuf:"fixed32,2,opt,name=max_lon,json=maxLon" json:"max_lon,omitempty"`
+	MinLat      *float32               `protobuf:"fixed32,3,opt,name=min_lat,json=minLat" json:"min_lat,omitempty"`
+	MaxLat      *float32               `protobuf:"fixed32,4,opt,name=max_lat,json=maxLat" json:"max_lat,omitempty"`
+	BoundString *string                `protobuf:"bytes,5,opt,name=bound_string,json=boundString" json:"bound_string,omitempty"`
+	Rind        *string                `protobuf:"bytes,6,opt,name=rind" json:"rind,omitempty"`
+	From        *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=from" json:"from,omitempty"`
+	To          *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=to" json:"to,omitempty"`
+	Limit       *uint32                `protobuf:"varint,9,opt,name=limit" json:"limit,omitempty"`
+	NoSkip      *bool                  `protobuf:"varint,10,opt,name=no_skip,json=noSkip" json:"no_skip,omitempty"`
 }
 
 func (x *GetPointsRequest) Reset() {
@@ -228,43 +228,43 @@ func (*GetPointsRequest) Descriptor() ([]byte, []int) {
 }
 
 func (x *GetPointsRequest) GetMinLon() float32 {
-	if x != nil {
-		return x.MinLon
+	if x != nil && x.MinLon != nil {
+		return *x.MinLon
 	}
 	return 0
 }
 
 func (x *GetPointsRequest) GetMaxLon() float32 {
-	if x != nil {
-		return x.MaxLon
+	if x != nil && x.MaxLon != nil {
+		return *x.MaxLon
 	}
 	return 0
 }
 
 func (x *GetPointsRequest) GetMinLat() float32 {
-	if x != nil {
-		return x.MinLat
+	if x != nil && x.MinLat != nil {
+		return *x.MinLat
 	}
 	return 0
 }
 
 func (x *GetPointsRequest) GetMaxLat() float32 {
-	if x != nil {
-		return x.MaxLat
+	if x != nil && x.MaxLat != nil {
+		return *x.MaxLat
 	}
 	return 0
 }
 
 func (x *GetPointsRequest) GetBoundString() string {
-	if x != nil {
-		return x.BoundString
+	if x != nil && x.BoundString != nil {
+		return *x.BoundString
 	}
 	return ""
 }
 
 func (x *GetPointsRequest) GetRind() string {
-	if x != nil {
-		return x.Rind
+	if x != nil && x.Rind != nil {
+		return *x.Rind
 	}
 	return ""
 }
@@ -284,15 +284,15 @@ func (x *GetPointsRequest) GetTo() *timestamppb.Timestamp {
 }
 
 func (x *GetPointsRequest) GetLimit() uint32 {
-	if x != nil {
-		return x.Limit
+	if x != nil && x.Limit != nil {
+		return *x.Limit
 	}
 	return 0
 }
 
 func (x *GetPointsRequest) GetNoSkip() bool {
-	if x != nil {
-		return x.NoSkip
+	if x != nil && x.NoSkip != nil {
+		return *x.NoSkip
 	}
 	return false
 }
@@ -302,17 +302,17 @@ type Point struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id        string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	EntryDate *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=entry_date,json=entryDate,proto3" json:"entry_date,omitempty"`
-	Speed     float32                `protobuf:"fixed32,3,opt,name=speed,proto3" json:"speed,omitempty"`
+	Id        *string                `protobuf:"bytes,1,opt,name=id" json:"id,omitempty"`
+	EntryDate *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=entry_date,json=entryDate" json:"entry_date,omitempty"`
+	Speed     *float32               `protobuf:"fixed32,3,opt,name=speed" json:"speed,omitempty"`
 	// float speed = 3;
-	EntrySource      string    `protobuf:"bytes,4,opt,name=entry_source,json=entrySource,proto3" json:"entry_source,omitempty"`
-	Altitude         float32   `protobuf:"fixed32,5,opt,name=altitude,proto3" json:"altitude,omitempty"`
-	Loc              *Geometry `protobuf:"bytes,8,opt,name=loc,proto3" json:"loc,omitempty"`
-	ActivityType     string    `protobuf:"bytes,9,opt,name=activity_type,json=activityType,proto3" json:"activity_type,omitempty"`
-	Heading          float32   `protobuf:"fixed32,11,opt,name=heading,proto3" json:"heading,omitempty"`
-	Accuracy         float32   `protobuf:"fixed32,12,opt,name=accuracy,proto3" json:"accuracy,omitempty"`
-	AltitudeAccuracy float32   `protobuf:"fixed32,13,opt,name=altitude_accuracy,json=altitudeAccuracy,proto3" json:"altitude_accuracy,omitempty"`
+	EntrySource      *string   `protobuf:"bytes,4,opt,name=entry_source,json=entrySource" json:"entry_source,omitempty"`
+	Altitude         *float32  `protobuf:"fixed32,5,opt,name=altitude" json:"altitude,omitempty"`
+	Loc              *Geometry `protobuf:"bytes,8,opt,name=loc" json:"loc,omitempty"`
+	ActivityType     *string   `protobuf:"bytes,9,opt,name=activity_type,json=activityType" json:"activity_type,omitempty"`
+	Heading          *float32  `protobuf:"fixed32,11,opt,name=heading" json:"heading,omitempty"`
+	Accuracy         *float32  `protobuf:"fixed32,12,opt,name=accuracy" json:"accuracy,omitempty"`
+	AltitudeAccuracy *float32  `protobuf:"fixed32,13,opt,name=altitude_accuracy,json=altitudeAccuracy" json:"altitude_accuracy,omitempty"`
 }
 
 func (x *Point) Reset() {
@@ -346,8 +346,8 @@ func (*Point) Descriptor() ([]byte, []int) {
 }
 
 func (x *Point) GetId() string {
-	if x != nil {
-		return x.Id
+	if x != nil && x.Id != nil {
+		return *x.Id
 	}
 	return ""
 }
@@ -360,22 +360,22 @@ func (x *Point) GetEntryDate() *timestamppb.Timestamp {
 }
 
 func (x *Point) GetSpeed() float32 {
-	if x != nil {
-		return x.Speed
+	if x != nil && x.Speed != nil {
+		return *x.Speed
 	}
 	return 0
 }
 
 func (x *Point) GetEntrySource() string {
-	if x != nil {
-		return x.EntrySource
+	if x != nil && x.EntrySource != nil {
+		return *x.EntrySource
 	}
 	return ""
 }
 
 func (x *Point) GetAltitude() float32 {
-	if x != nil {
-		return x.Altitude
+	if x != nil && x.Altitude != nil {
+		return *x.Altitude
 	}
 	return 0
 }
@@ -388,29 +388,29 @@ func (x *Point) GetLoc() *Geometry {
 }
 
 func (x *Point) GetActivityType() string {
-	if x != nil {
-		return x.ActivityType
+	if x != nil && x.ActivityType != nil {
+		return *x.ActivityType
 	}
 	return ""
 }
 
 func (x *Point) GetHeading() float32 {
-	if x != nil {
-		return x.Heading
+	if x != nil && x.Heading != nil {
+		return *x.Heading
 	}
 	return 0
 }
 
 func (x *Point) GetAccuracy() float32 {
-	if x != nil {
-		return x.Accuracy
+	if x != nil && x.Accuracy != nil {
+		return *x.Accuracy
 	}
 	return 0
 }
 
 func (x *Point) GetAltitudeAccuracy() float32 {
-	if x != nil {
-		return x.AltitudeAccuracy
+	if x != nil && x.AltitudeAccuracy != nil {
+		return *x.AltitudeAccuracy
 	}
 	return 0
 }
@@ -420,8 +420,8 @@ type Geometry struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Coordinates *latlng.LatLng `protobuf:"bytes,1,opt,name=coordinates,proto3" json:"coordinates,omitempty"`
-	Type        string         `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	Coordinates *latlng.LatLng `protobuf:"bytes,1,opt,name=coordinates" json:"coordinates,omitempty"`
+	Type        *string        `protobuf:"bytes,2,opt,name=type" json:"type,omitempty"`
 }
 
 func (x *Geometry) Reset() {
@@ -462,8 +462,8 @@ func (x *Geometry) GetCoordinates() *latlng.LatLng {
 }
 
 func (x *Geometry) GetType() string {
-	if x != nil {
-		return x.Type
+	if x != nil && x.Type != nil {
+		return *x.Type
 	}
 	return ""
 }
@@ -582,7 +582,8 @@ var file_points_proto_rawDesc = []byte{
 	0x6f, 0x72, 0x64, 0x69, 0x6e, 0x61, 0x74, 0x65, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79, 0x70,
 	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x42, 0x15, 0x5a,
 	0x13, 0x65, 0x72, 0x6e, 0x69, 0x65, 0x2e, 0x6f, 0x72, 0x67, 0x2f, 0x67, 0x6f, 0x65, 0x2f, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x08, 0x65, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x70, 0xe8,
+	0x07,
 }
 
 var (

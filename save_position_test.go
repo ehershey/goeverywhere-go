@@ -47,11 +47,11 @@ func TestSavePosition(t *testing.T) {
 
 	point := proto.Point{Loc: &geom, EntryDate: nowts,
 
-		Accuracy:         randAccuracy,
-		Speed:            randSpeed,
-		Heading:          randHeading,
-		Altitude:         randAltitude,
-		AltitudeAccuracy: randAltitudeAccuracy,
+		Accuracy:         &randAccuracy,
+		Speed:            &randSpeed,
+		Heading:          &randHeading,
+		Altitude:         &randAltitude,
+		AltitudeAccuracy: &randAltitudeAccuracy,
 	}
 	test_request := &proto.SavePositionRequest{Coords: &point}
 
@@ -83,8 +83,8 @@ func TestSavePosition(t *testing.T) {
 	}
 
 	responseEntrySource := test_response.raw.SavedPoint.EntrySource
-	if responseEntrySource != test_entry_source {
-		t.Errorf("Got different entry_source in save position response (%s) than sent in request (%s)", responseEntrySource, test_entry_source)
+	if *responseEntrySource != test_entry_source {
+		t.Errorf("Got different entry_source in save position response (%s) than sent in request (%s)", *responseEntrySource, test_entry_source)
 	}
 
 	//Accuracy:         randAccuracy,
@@ -122,7 +122,7 @@ func TestSavePosition(t *testing.T) {
 	}
 	defer client.Disconnect(ctx)
 
-	oid, err := primitive.ObjectIDFromHex(test_response.raw.SavedPoint.Id)
+	oid, err := primitive.ObjectIDFromHex(*test_response.raw.SavedPoint.Id)
 	if err != nil {
 		t.Fatalf("got an error: %v", err)
 	}
@@ -267,8 +267,8 @@ func TestSavePositionZeroFields(t *testing.T) {
 	}
 
 	responseEntrySource := test_response.raw.SavedPoint.EntrySource
-	if responseEntrySource != test_entry_source {
-		t.Errorf("Got different entry_source in save position response (%s) than sent in request (%s)", responseEntrySource, test_entry_source)
+	if *responseEntrySource != test_entry_source {
+		t.Errorf("Got different entry_source in save position response (%s) than sent in request (%s)", *responseEntrySource, test_entry_source)
 	}
 
 	client, collection, err := getPointsCollection()
@@ -277,7 +277,7 @@ func TestSavePositionZeroFields(t *testing.T) {
 	}
 	defer client.Disconnect(ctx)
 
-	oid, err := primitive.ObjectIDFromHex(test_response.raw.SavedPoint.Id)
+	oid, err := primitive.ObjectIDFromHex(*test_response.raw.SavedPoint.Id)
 	if err != nil {
 		t.Fatalf("got an error: %v", err)
 	}

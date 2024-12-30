@@ -27,7 +27,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 357
+const autoupdate_version = 363
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_SECS = 10
 const WRITE_TIMEOUT_SECS = 10
@@ -248,6 +248,13 @@ func (s *gOEServiceServer) GetPoints(
 	stream *connect.ServerStream[proto.GetPointsResponse]) error {
 	log.Println("GetPoints request headers: ", req.Header())
 	return fmt.Errorf("Unimplemented")
+}
+
+func (s *gOEServiceServer) GetLivetrack(
+	ctx context.Context,
+	req *connect.Request[proto.GetLivetrackRequest]) (*connect.Response[proto.GetLivetrackResponse], error) {
+	log.Println("GetLivetrack request headers: ", req.Header())
+	return nil, fmt.Errorf("Unimplemented")
 }
 
 func (s *gOEServiceServer) GetBookmarks(

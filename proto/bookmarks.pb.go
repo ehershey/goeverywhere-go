@@ -27,7 +27,7 @@ type GetBookmarksResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Bookmark *Bookmark `protobuf:"bytes,1,opt,name=bookmark,proto3" json:"bookmark,omitempty"`
+	Bookmark *Bookmark `protobuf:"bytes,1,opt,name=bookmark" json:"bookmark,omitempty"`
 }
 
 func (x *GetBookmarksResponse) Reset() {
@@ -72,13 +72,13 @@ type GetBookmarksRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	MinLon      float32                `protobuf:"fixed32,1,opt,name=min_lon,json=minLon,proto3" json:"min_lon,omitempty"`
-	MaxLon      float32                `protobuf:"fixed32,2,opt,name=max_lon,json=maxLon,proto3" json:"max_lon,omitempty"`
-	MinLat      float32                `protobuf:"fixed32,3,opt,name=min_lat,json=minLat,proto3" json:"min_lat,omitempty"`
-	MaxLat      float32                `protobuf:"fixed32,4,opt,name=max_lat,json=maxLat,proto3" json:"max_lat,omitempty"`
-	BoundString string                 `protobuf:"bytes,5,opt,name=bound_string,json=boundString,proto3" json:"bound_string,omitempty"`
-	Rind        string                 `protobuf:"bytes,6,opt,name=rind,proto3" json:"rind,omitempty"`
-	Ts          *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=ts,proto3" json:"ts,omitempty"`
+	MinLon      *float32               `protobuf:"fixed32,1,opt,name=min_lon,json=minLon" json:"min_lon,omitempty"`
+	MaxLon      *float32               `protobuf:"fixed32,2,opt,name=max_lon,json=maxLon" json:"max_lon,omitempty"`
+	MinLat      *float32               `protobuf:"fixed32,3,opt,name=min_lat,json=minLat" json:"min_lat,omitempty"`
+	MaxLat      *float32               `protobuf:"fixed32,4,opt,name=max_lat,json=maxLat" json:"max_lat,omitempty"`
+	BoundString *string                `protobuf:"bytes,5,opt,name=bound_string,json=boundString" json:"bound_string,omitempty"`
+	Rind        *string                `protobuf:"bytes,6,opt,name=rind" json:"rind,omitempty"`
+	Ts          *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=ts" json:"ts,omitempty"`
 }
 
 func (x *GetBookmarksRequest) Reset() {
@@ -112,43 +112,43 @@ func (*GetBookmarksRequest) Descriptor() ([]byte, []int) {
 }
 
 func (x *GetBookmarksRequest) GetMinLon() float32 {
-	if x != nil {
-		return x.MinLon
+	if x != nil && x.MinLon != nil {
+		return *x.MinLon
 	}
 	return 0
 }
 
 func (x *GetBookmarksRequest) GetMaxLon() float32 {
-	if x != nil {
-		return x.MaxLon
+	if x != nil && x.MaxLon != nil {
+		return *x.MaxLon
 	}
 	return 0
 }
 
 func (x *GetBookmarksRequest) GetMinLat() float32 {
-	if x != nil {
-		return x.MinLat
+	if x != nil && x.MinLat != nil {
+		return *x.MinLat
 	}
 	return 0
 }
 
 func (x *GetBookmarksRequest) GetMaxLat() float32 {
-	if x != nil {
-		return x.MaxLat
+	if x != nil && x.MaxLat != nil {
+		return *x.MaxLat
 	}
 	return 0
 }
 
 func (x *GetBookmarksRequest) GetBoundString() string {
-	if x != nil {
-		return x.BoundString
+	if x != nil && x.BoundString != nil {
+		return *x.BoundString
 	}
 	return ""
 }
 
 func (x *GetBookmarksRequest) GetRind() string {
-	if x != nil {
-		return x.Rind
+	if x != nil && x.Rind != nil {
+		return *x.Rind
 	}
 	return ""
 }
@@ -165,10 +165,10 @@ type Bookmark struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id           string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"_id,omitempty" bson:"_id,omitempty"`
-	Loc          *Geometry              `protobuf:"bytes,2,opt,name=loc,proto3" json:"loc,omitempty"`
-	Label        string                 `protobuf:"bytes,3,opt,name=label,proto3" json:"label,omitempty"`
-	CreationDate *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=creation_date,json=creationDate,proto3" json:"creation_date,omitempty"`
+	Id           *string                `protobuf:"bytes,1,opt,name=id" json:"_id,omitempty" bson:"_id,omitempty"`
+	Loc          *Geometry              `protobuf:"bytes,2,opt,name=loc" json:"loc,omitempty"`
+	Label        *string                `protobuf:"bytes,3,opt,name=label" json:"label,omitempty"`
+	CreationDate *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=creation_date,json=creationDate" json:"creation_date,omitempty"`
 }
 
 func (x *Bookmark) Reset() {
@@ -202,8 +202,8 @@ func (*Bookmark) Descriptor() ([]byte, []int) {
 }
 
 func (x *Bookmark) GetId() string {
-	if x != nil {
-		return x.Id
+	if x != nil && x.Id != nil {
+		return *x.Id
 	}
 	return ""
 }
@@ -216,8 +216,8 @@ func (x *Bookmark) GetLoc() *Geometry {
 }
 
 func (x *Bookmark) GetLabel() string {
-	if x != nil {
-		return x.Label
+	if x != nil && x.Label != nil {
+		return *x.Label
 	}
 	return ""
 }
@@ -234,8 +234,8 @@ type SaveBookmarkRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Loc   *Geometry `protobuf:"bytes,1,opt,name=loc,proto3" json:"loc,omitempty"`
-	Label string    `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
+	Loc   *Geometry `protobuf:"bytes,1,opt,name=loc" json:"loc,omitempty"`
+	Label *string   `protobuf:"bytes,2,opt,name=label" json:"label,omitempty"`
 }
 
 func (x *SaveBookmarkRequest) Reset() {
@@ -276,8 +276,8 @@ func (x *SaveBookmarkRequest) GetLoc() *Geometry {
 }
 
 func (x *SaveBookmarkRequest) GetLabel() string {
-	if x != nil {
-		return x.Label
+	if x != nil && x.Label != nil {
+		return *x.Label
 	}
 	return ""
 }
@@ -287,7 +287,7 @@ type SaveBookmarkResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Bookmark *Bookmark `protobuf:"bytes,1,opt,name=bookmark,proto3" json:"bookmark,omitempty"`
+	Bookmark *Bookmark `protobuf:"bytes,1,opt,name=bookmark" json:"bookmark,omitempty"`
 }
 
 func (x *SaveBookmarkResponse) Reset() {
@@ -375,7 +375,8 @@ var file_bookmarks_proto_rawDesc = []byte{
 	0x72, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x09, 0x2e, 0x42, 0x6f, 0x6f, 0x6b, 0x6d,
 	0x61, 0x72, 0x6b, 0x52, 0x08, 0x62, 0x6f, 0x6f, 0x6b, 0x6d, 0x61, 0x72, 0x6b, 0x42, 0x15, 0x5a,
 	0x13, 0x65, 0x72, 0x6e, 0x69, 0x65, 0x2e, 0x6f, 0x72, 0x67, 0x2f, 0x67, 0x6f, 0x65, 0x2f, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x08, 0x65, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x70, 0xe8,
+	0x07,
 }
 
 var (

@@ -85,29 +85,29 @@ func getPoints(ctx context.Context, req *proto.GetPointsRequest) (iter.Seq2[*pro
 		// ctx, cancel := context.WithTimeout(context.Background(), default_timeout_seconds*time.Second)
 		// defer cancel()
 
-		if req.MinLon > req.MaxLon {
+		if req.GetMinLon() > req.GetMaxLon() {
 			yield(nil, errors.New("min_lon must be <= max_lon"))
 			return
 		}
-		if req.MinLat > req.MaxLat {
+		if req.GetMinLat() > req.GetMaxLat() {
 			yield(nil, errors.New("min_lat must be <= max_lat"))
 			return
 		}
 
 		var ands []bson.M
 
-		if req.MinLon != 0 || req.MinLat != 0 || req.MaxLon != 0 || req.MaxLat != 0 {
+		if req.GetMinLon() != 0 || req.GetMinLat() != 0 || req.GetMaxLon() != 0 || req.GetMaxLat() != 0 {
 			box_query := bson.M{"loc": bson.M{"$geoIntersects": bson.M{"$geometry": bson.M{"type": "Polygon",
-				"coordinates": bson.A{bson.A{bson.A{req.MinLon,
-					req.MinLat},
-					bson.A{req.MinLon,
-						req.MaxLat},
-					bson.A{req.MaxLon,
-						req.MaxLat},
-					bson.A{req.MaxLon,
-						req.MinLat},
-					bson.A{req.MinLon,
-						req.MinLat}}},
+				"coordinates": bson.A{bson.A{bson.A{req.GetMinLon(),
+					req.GetMinLat()},
+					bson.A{req.GetMinLon(),
+						req.GetMaxLat()},
+					bson.A{req.GetMaxLon(),
+						req.GetMaxLat()},
+					bson.A{req.GetMaxLon(),
+						req.GetMinLat()},
+					bson.A{req.GetMinLon(),
+						req.GetMinLat()}}},
 			},
 			},
 			},

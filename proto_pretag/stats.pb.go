@@ -28,10 +28,10 @@ type GetStatsResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	OldestPointTimestamp *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=oldest_point_timestamp,json=oldestPointTimestamp,proto3" json:"oldest_point_timestamp,omitempty"`
-	NewestPointTimestamp *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=newest_point_timestamp,json=newestPointTimestamp,proto3" json:"newest_point_timestamp,omitempty"`
-	PointCount           uint32                 `protobuf:"varint,3,opt,name=point_count,json=pointCount,proto3" json:"point_count,omitempty"`
-	EntrySources         []string               `protobuf:"bytes,4,rep,name=entry_sources,json=entrySources,proto3" json:"entry_sources,omitempty"`
+	OldestPointTimestamp *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=oldest_point_timestamp,json=oldestPointTimestamp" json:"oldest_point_timestamp,omitempty"`
+	NewestPointTimestamp *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=newest_point_timestamp,json=newestPointTimestamp" json:"newest_point_timestamp,omitempty"`
+	PointCount           *uint32                `protobuf:"varint,3,opt,name=point_count,json=pointCount" json:"point_count,omitempty"`
+	EntrySources         []string               `protobuf:"bytes,4,rep,name=entry_sources,json=entrySources" json:"entry_sources,omitempty"`
 }
 
 func (x *GetStatsResponse) Reset() {
@@ -79,8 +79,8 @@ func (x *GetStatsResponse) GetNewestPointTimestamp() *timestamppb.Timestamp {
 }
 
 func (x *GetStatsResponse) GetPointCount() uint32 {
-	if x != nil {
-		return x.PointCount
+	if x != nil && x.PointCount != nil {
+		return *x.PointCount
 	}
 	return 0
 }
@@ -152,7 +152,8 @@ var file_stats_proto_rawDesc = []byte{
 	0x0c, 0x65, 0x6e, 0x74, 0x72, 0x79, 0x53, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x73, 0x22, 0x11, 0x0a,
 	0x0f, 0x47, 0x65, 0x74, 0x53, 0x74, 0x61, 0x74, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
 	0x42, 0x15, 0x5a, 0x13, 0x65, 0x72, 0x6e, 0x69, 0x65, 0x2e, 0x6f, 0x72, 0x67, 0x2f, 0x67, 0x6f,
-	0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x08, 0x65, 0x64, 0x69, 0x74, 0x69, 0x6f, 0x6e,
+	0x73, 0x70, 0xe8, 0x07,
 }
 
 var (

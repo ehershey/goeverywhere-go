@@ -34,7 +34,7 @@ func savePosition(ctx context.Context, entry_source string, req *proto.SavePosit
 		return nil, wrappedErr
 	}
 
-	point.EntrySource = entry_source
+	point.EntrySource = &entry_source
 	p := savePositionPoint{raw: point}
 	gps_log_point, err := p.to_gps_log_point()
 	if err != nil {
@@ -48,9 +48,11 @@ func savePosition(ctx context.Context, entry_source string, req *proto.SavePosit
 		log.Println("got an error:", wrappedErr)
 		return nil, wrappedErr
 	}
-	point.Id = result.InsertedID.(primitive.ObjectID).Hex()
+	id := result.InsertedID.(primitive.ObjectID).Hex()
+	point.Id = &id
 
-	proto := &proto.SavePositionResponse{Status: "OK", SavedPoint: point}
+	status := "OK"
+	proto := &proto.SavePositionResponse{Status: &status, SavedPoint: point}
 	r := savePositionResponse{raw: proto}
 	return &r, nil
 
@@ -93,12 +95,12 @@ func (request_point *savePositionPoint) to_gps_log_point() (*gps_log_point, erro
 	point := request_point.raw
 
 	return &gps_log_point{
-		EntrySource:      point.EntrySource,
-		Altitude:         point.Altitude,
-		AltitudeAccuracy: point.AltitudeAccuracy,
-		Accuracy:         point.Accuracy,
-		Speed:            point.Speed,
-		Heading:          point.Heading,
+		EntrySource:      point.GetEntrySource(),
+		Altitude:         point.GetAltitude(),
+		AltitudeAccuracy: point.GetAltitudeAccuracy(),
+		Accuracy:         point.GetAccuracy(),
+		Speed:            point.GetSpeed(),
+		Heading:          point.GetHeading(),
 		EntryDate:        point.EntryDate.AsTime(),
 		Loc:              geopoint{Type: "Point", Coordinates: []float64{request_point.GetLon(), request_point.GetLat()}},
 	}, nil

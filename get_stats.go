@@ -129,10 +129,11 @@ func getStats(ctx context.Context, req *proto.GetStatsRequest) (*proto.GetStatsR
 		return nil, wrappedErr
 	}
 
+	pointCount := uint32(PointCount)
 	response := &proto.GetStatsResponse{
 		OldestPointTimestamp: timestamppb.New(oldestPointTimestamp),
 		NewestPointTimestamp: timestamppb.New(newestPointTimestamp),
-		PointCount:           uint32(PointCount),
+		PointCount:           &pointCount,
 		EntrySources:         EntrySources,
 	}
 

@@ -13,7 +13,7 @@ import (
 
 const strava_activities_collection_name = "activities"
 
-const default_polyline_limit = 100000
+const default_polyline_limit = 2000
 
 //const default_timeout_seconds = 60
 
@@ -45,7 +45,7 @@ func getPolylines(ctx context.Context, req *proto.GetPolylinesRequest) iter.Seq[
 			if err := cursor.Decode(&result); err != nil {
 				log.Fatal(err)
 			}
-			one_activity_polyline := &proto.ActivityPolyline{Polyline: result.MapPolyline}
+			one_activity_polyline := &proto.ActivityPolyline{Polyline: &result.MapPolyline}
 			var activity_polyline_array []*proto.ActivityPolyline
 			activity_polyline_array = append(activity_polyline_array, one_activity_polyline)
 			//activity_polyline_array[0] = one_activity_polyline
