@@ -52,17 +52,12 @@ deploy: goe.linux.arm64 goe.linux.amd64 goe
 	./goe --version
 	echo deployed version:
 	ssh oci1 if test -e /usr/local/bin/goe \; then /usr/local/bin/goe --version \; fi
-	ssh eahdroplet4 if test -e /usr/local/bin/goe \; then /usr/local/bin/goe --version \; fi
 	scp goe.linux.arm64 goe.service oci1:
-	scp goe.linux.amd64 goe.service eahdroplet4:
 	# if no previous version, copy new version into place so remaining commands will work
 	ssh -t oci1 if test -e /usr/local/bin/goe \; then cp -pri /usr/local/bin/goe goe.`date +%s` \; else sudo cp -pri goe.linux.arm64 /usr/local/bin/goe \; fi
-	ssh -t eahdroplet4 if test -e /usr/local/bin/goe \; then cp -pri /usr/local/bin/goe goe.`date +%s` \; else sudo cp -pri goe.linux.amd64 /usr/local/bin/goe \; fi
 	# if no previous version, copy new version into place so remaining commands will work
 	ssh -t oci1 if test -e /etc/systemd/system/goe.service \; then cp -pri /etc/systemd/system/goe.service goe.service.`date +%s` \; else sudo cp -pri goe.service /etc/systemd/system \; fi
-	ssh -t eahdroplet4 if test -e /etc/systemd/system/goe.service \; then cp -pri /etc/systemd/system/goe.service goe.service.`date +%s` \; else sudo cp -pri goe.service /etc/systemd/system \; fi
 	ssh -t oci1 'sudo sh -c "mv /usr/local/bin/goe /usr/local/bin/goe.last && mv goe.linux.arm64 /usr/local/bin/goe && chcon --reference /usr/local/bin/goe.last /usr/local/bin/goe && systemctl restart goe"'
-	ssh -t eahdroplet4 'sudo sh -c "mv /usr/local/bin/goe /usr/local/bin/goe.last && mv goe.linux.amd64 /usr/local/bin/goe && chcon --reference /usr/local/bin/goe.last /usr/local/bin/goe && systemctl restart goe"'
 
 install: goe
 	sudo install ./goe /usr/local/bin/goe
@@ -74,7 +69,8 @@ gen: $(GEN_FILES)
 
 $(GEN_FILES) &: $(GEN_PRETAG_FILES) $(GOPATH)/bin/protoc-gen-connect-go $(GOPATH)/bin/protoc-gen-gotag
 	cp -pr $(GEN_PRETAG_FILES) ./proto/
-	protoc -I$(wildcard $(GOPATH)/pkg/mod/github.com/srikrsna/protoc-gen-gotag*) --gotag_out=outdir=./proto:. --gotag_opt=paths=source_relative --connect-go_out=./proto --connect-go_opt=paths=source_relative $(PROTO_FILES) --proto_path $(PROTO_PATH)
+	# protoc -I$(wildcard $(GOPATH)/pkg/mod/github.com/srikrsna/protoc-gen-gotag*) --gotag_out=outdir=./proto:. --gotag_opt=paths=source_relative --connect-go_out=./proto --connect-go_opt=paths=source_relative $(PROTO_FILES) --proto_path $(PROTO_PATH)
+	protoc --plugin=../protoc-gen-gotag/protoc-gen-gotag -I$(wildcard $(GOPATH)/pkg/mod/github.com/srikrsna/protoc-gen-gotag*) --gotag_out=outdir=./proto:. --gotag_opt=paths=source_relative --connect-go_out=./proto --connect-go_opt=paths=source_relative $(PROTO_FILES) --proto_path $(PROTO_PATH)
 
 $(GOPATH)/bin/protoc-gen-connect-go:
 	go install connectrpc.com/connect/cmd/protoc-gen-connect-go@latest
