@@ -83,6 +83,10 @@ func HandleOneJob() error {
 		fmt.Sprintf("max_lon=%f", job.MaxLon))
 	out, err := cmd.CombinedOutput()
 	if err != nil {
+		if ntfyErr := errorNotify(err); ntfyErr != nil {
+			log.Println("got ntfy error:", ntfyErr)
+		}
+
 		wrappedErr := fmt.Errorf("Error executing job command: %w", err)
 		log.Println("got an error:", wrappedErr)
 		job.Output = fmt.Sprintf("Error: %v\nOutput: %s", wrappedErr, out)

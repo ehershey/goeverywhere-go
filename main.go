@@ -1,3 +1,6 @@
+//go:build BuildArgsIncluded
+// +build BuildArgsIncluded
+
 package main
 
 import (
@@ -27,7 +30,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 363
+const autoupdate_version = 366
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_SECS = 10
 const WRITE_TIMEOUT_SECS = 10

@@ -26,18 +26,15 @@ LDFLAGS += -X \"main.GoVersion=$(GO_VERSION)\"
 LDFLAGS += -s -w
 
 goe: *.go */*.go $(GEN_FILES)
-	go build -ldflags "$(LDFLAGS)"
+	go build -ldflags "$(LDFLAGS)" -tags BuildArgsIncluded
 
 run: goe
 	./goe $(GOE_RUN_FLAGS)
 
-release: goe.linux.arm64 goe.linux.amd64
+release: goe.linux.arm64
 
 goe.linux.arm64: test.success goe
-	GOOS=linux GOARCH=arm64 go build -o goe.linux.arm64 -ldflags "$(LDFLAGS)"
-
-goe.linux.amd64: test.success goe
-	GOOS=linux GOARCH=amd64 go build -o goe.linux.amd64 -ldflags "$(LDFLAGS)"
+	GOOS=linux GOARCH=arm64 go build -o goe.linux.arm64 -ldflags "$(LDFLAGS)" -tags BuildArgsIncluded
 
 test: *.go db.created
 	go test -v && scripts/verify_no_extra_output.sh && touch test.success
@@ -47,7 +44,7 @@ test.success: test
 db.created: scripts/loadData.js scripts/setup_empty_db.sh
 	scripts/setup_empty_db.sh
 
-deploy: goe.linux.arm64 goe.linux.amd64 goe
+deploy: goe.linux.arm64 goe
 	echo latest version:
 	./goe --version
 	echo deployed version:

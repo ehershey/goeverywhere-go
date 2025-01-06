@@ -38,9 +38,8 @@ func errorNotify(jobErr error) error {
 	Verbose := true
 	DryRun := false
 	req, _ := http.NewRequest("POST", ntfy_url, body)
-	// req.Header.Set("Click", url)
-	// req.Header.Set("Actions", fmt.Sprintf("view, View on Strava, %s", url))
 	req.Header.Set("Title", title)
+	req.Header.Set("Priority", "urgent")
 
 	log.Printf("ntfy_url: %v\n", ntfy_url)
 	log.Printf("body: %v\n", body)

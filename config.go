@@ -11,6 +11,7 @@ type Specification struct {
 	Strava_MongoDB_Uri string `default:"mongodb://127.0.0.1:27017"`
 	DB_Name            string `default:"test"`
 	Strava_DB_Name     string `default:"strava"`
+	Error_Ntfy_Topic   string `default:""` // blank for no notifications
 }
 
 func GetConfig() (*Specification, error) {
