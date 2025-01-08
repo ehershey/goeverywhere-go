@@ -21,7 +21,7 @@ tasks:
         sudo ln -s /usr/local/go/bin/* /usr/local/bin/
     - build: |
         cd ${reponame}
-        go build
+        make
     - vet: |
         cd ${reponame}
         go vet
