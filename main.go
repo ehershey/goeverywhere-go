@@ -30,7 +30,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 366
+const autoupdate_version = 369
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_SECS = 10
 const WRITE_TIMEOUT_SECS = 10
@@ -257,7 +257,17 @@ func (s *gOEServiceServer) GetLivetrack(
 	ctx context.Context,
 	req *connect.Request[proto.GetLivetrackRequest]) (*connect.Response[proto.GetLivetrackResponse], error) {
 	log.Println("GetLivetrack request headers: ", req.Header())
-	return nil, fmt.Errorf("Unimplemented")
+
+	response, err := getLivetrack(ctx, req.Msg)
+
+	res := connect.NewResponse(response)
+
+	if err != nil {
+		wrappedErr := fmt.Errorf("Error calling getLivetrack() in grpc method: %w", err)
+		return res, wrappedErr
+	}
+
+	return res, nil
 }
 
 func (s *gOEServiceServer) GetBookmarks(
