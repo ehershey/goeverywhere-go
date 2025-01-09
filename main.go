@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime/debug"
 	"syscall"
 	"time"
 
@@ -30,7 +31,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 369
+const autoupdate_version = 382
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_SECS = 10
 const WRITE_TIMEOUT_SECS = 10
@@ -40,6 +41,20 @@ const IDLE_TIMEOUT_SECS = 20
 var routes []string
 
 func main() {
+
+	bi, ok := debug.ReadBuildInfo()
+	if !ok || ModuleVersion == "" {
+		panic("No embedded build info")
+	}
+
+	for _, setting := range bi.Settings {
+		if setting.Key == "vcs.modified" {
+			if setting.Value == "true" {
+				ModuleVersion = fmt.Sprintf("%s-dirty", ModuleVersion)
+			}
+		}
+	}
+
 	// parse config to check for errors before doing anything else
 	//
 	_, err := GetConfig()
@@ -79,6 +94,7 @@ func main() {
 	case serveCommand.FullCommand():
 		serve(*handleJobs)
 	case versionCommand.FullCommand():
+
 		if *short {
 			println(shortVersion())
 		} else {
@@ -223,17 +239,19 @@ func catchAllHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func version() string {
-	return fmt.Sprintf("main: %d\nBuild time: %v\nGit commit: %v\nGo Version: %v", autoupdate_version, BuildTime, CommitHash, GoVersion)
+	return fmt.Sprintf("main: %d\nBuild time: %v\nGit commit: %v\nGo Version: %v\nModuleVersion: %v", autoupdate_version, BuildTime, CommitHash, GoVersion, ModuleVersion)
 }
 func shortVersion() string {
-	return fmt.Sprintf("%d.%v.%v", autoupdate_version, BuildTime, CommitHash)
+	return fmt.Sprintf("%d.%v", autoupdate_version, ModuleVersion)
 }
 
 // build flags
-var BuildTime = "Unspecified"
+var BuildTime string
 
-var CommitHash = "Unspecified"
-var GoVersion = "Unspecified"
+var CommitHash string
+var GoVersion string
+
+var ModuleVersion string
 
 func newServer() *gOEServiceServer {
 	s := &gOEServiceServer{myContext: context.Background()}

@@ -8,6 +8,7 @@ BUILD_TIME = $(shell date +"%Y-%m-%d %H:%M:%S")
 COMMIT_HASH = $(shell git log -1 --pretty=format:%h)
 GO_VERSION = $(shell go version | cut -f3- -d\ )
 GOPATH = $(shell go env GOPATH)
+MODULE_VERSION = $(shell git describe --tags)
 
 PROTO_PATH = ../goeverywhere/grpcify/
 PROTO_PRETAG_PATH = ./proto_pretag/
@@ -23,10 +24,15 @@ GEN_PRETAG_FILES = $(patsubst $(PROTO_PATH)%.proto,$(PROTO_PRETAG_PATH)%.pb.go,$
 LDFLAGS = -X \"main.BuildTime=$(BUILD_TIME)\"
 LDFLAGS += -X \"main.CommitHash=$(COMMIT_HASH)\"
 LDFLAGS += -X \"main.GoVersion=$(GO_VERSION)\"
+LDFLAGS += -X \"main.ModuleVersion=$(MODULE_VERSION)\"
+# from go tool link  -help:
+# -s    disable symbol table
+# -w    disable DWARF generation
 LDFLAGS += -s -w
+GOFLAGS = -tags BuildArgsIncluded
 
-goe: *.go */*.go $(GEN_FILES)
-	go build -ldflags "$(LDFLAGS)" -tags BuildArgsIncluded
+goe: *.go */*.go $(GEN_FILES) Makefile .git/logs/HEAD .git/refs/tags/*
+	go build -ldflags "$(LDFLAGS)" $(GOFLAGS)
 
 run: goe
 	./goe $(GOE_RUN_FLAGS)
@@ -34,10 +40,10 @@ run: goe
 release: goe.linux.arm64
 
 goe.linux.arm64: test.success goe
-	GOOS=linux GOARCH=arm64 go build -o goe.linux.arm64 -ldflags "$(LDFLAGS)" -tags BuildArgsIncluded
+	GOOS=linux GOARCH=arm64 go build -o goe.linux.arm64 -ldflags "$(LDFLAGS)" $(GOFLAGS)
 
 test: *.go db.created
-	go test -v && scripts/verify_no_extra_output.sh && touch test.success
+	go test -v $(GOFLAGS) && scripts/verify_no_extra_output.sh && touch test.success
 
 test.success: test
 

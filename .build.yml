@@ -24,11 +24,11 @@ tasks:
         make
     - vet: |
         cd ${reponame}
-        go vet
+        make vet
     - test: |
         cd ${reponame}
         ./scripts/setup_empty_db.sh
-        go test -v
+        make test
 triggers:
   - action: email
     condition: always
