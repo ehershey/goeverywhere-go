@@ -31,7 +31,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 382
+const autoupdate_version = 383
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_SECS = 10
 const WRITE_TIMEOUT_SECS = 10
@@ -63,10 +63,9 @@ func main() {
 	}
 
 	err = sentry.Init(sentry.ClientOptions{
-		Debug:              false,
-		EnableTracing:      true,
-		TracesSampleRate:   1.0,
-		ProfilesSampleRate: 1.0,
+		Debug:            false,
+		EnableTracing:    true,
+		TracesSampleRate: 1.0,
 	})
 	if err != nil {
 		log.Fatalf("sentry.Init: %s", err)
