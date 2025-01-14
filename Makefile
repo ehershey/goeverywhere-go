@@ -43,7 +43,7 @@ goe.linux.arm64: test.success goe
 	GOOS=linux GOARCH=arm64 go build -o goe.linux.arm64 -ldflags "$(LDFLAGS)" $(GOFLAGS)
 
 test: *.go db.created
-	go test -v $(GOFLAGS) && scripts/verify_no_extra_output.sh && touch test.success
+	go test -v ./... $(GOFLAGS) && scripts/verify_no_extra_output.sh && touch test.success
 
 test.success: test
 
