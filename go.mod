@@ -4,7 +4,7 @@ go 1.23.2
 
 require (
 	connectrpc.com/connect v1.18.1
-	git.sr.ht/~ernie/livetrackreceiver v0.1.5
+	git.sr.ht/~ernie/livetrackreceiver v0.1.6
 	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/getsentry/sentry-go v0.31.1
