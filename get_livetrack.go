@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"git.sr.ht/~ernie/livetrackreceiver/livetrack_slack"
+	"github.com/twpayne/go-polyline"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 
@@ -29,7 +30,7 @@ func getLivetrack(ctx context.Context, req *proto.GetLivetrackRequest) (*proto.G
 		wrappedErr := fmt.Errorf("got an error calling Get_session(): %w", err)
 		return nil, wrappedErr
 	}
-	sample_poly := "ezqlFv{luM?MEDBGAB@C?UZAl@AFAHYCaA?sECoAFc@?{@v@Ed@?RCnB@xADtAAf@E^@NCTi@LE\\?BKHEDJECPo@?AFJC?d@dABNCGE?CEB@CSA@GSGE?MB@?F@A@DDEIQ@DEAA@D@GMGBNPCKBBIG?CBFAAFBAA?BDLGAADL@GOC@@ECE@CEGCBDJB??CCIEGBHACCAD?AH@A@FDFFAFBf@vAeAqBNTCMC@AGCB?BAEFPDAGG?HBKGEA@BDCE@??J@EEE"
+	// sample_poly := "ezqlFv{luM?MEDBGAB@C?UZAl@AFAHYCaA?sECoAFc@?{@v@Ed@?RCnB@xADtAAf@E^@NCTi@LE\\?BKHEDJECPo@?AFJC?d@dABNCGE?CEB@CSA@GSGE?MB@?F@A@DDEIQ@DEAA@D@GMGBNPCKBBIG?CBFAAFBAA?BDLGAADL@GOC@@ECE@CEGCBDJB??CCIEGBHACCAD?AH@A@FDFFAFBf@vAeAqBNTCMC@AGCB?BAEFPDAGG?HBKGEA@BDCE@??J@EEE"
 
 	url, ok := session["url"].(string)
 	log.Printf("url: %v", url)
@@ -71,6 +72,29 @@ func getLivetrack(ctx context.Context, req *proto.GetLivetrackRequest) (*proto.G
 
 	var distanceMeters float32 = 0.0
 	activityType := "Unknown"
+
+	all_coords := [][]float64{{}}
+
+	for _, point := range trackPoints_converted {
+		point_asserted, ok := point.(map[string]interface{})
+		if !ok {
+			log.Printf("Weird point in session: %v (type %T)", point, point)
+		}
+
+		position := point_asserted["position"]
+		position_asserted, ok := position.(map[string]interface{})
+		if !ok {
+			log.Printf("Weird position in session: %v (type: %T)", position, position)
+		} else {
+			coords := []float64{position_asserted["lat"].(float64), position_asserted["lon"].(float64)}
+			//log.Printf("coords: %v", coords)
+
+			all_coords = append(all_coords, coords)
+
+		}
+	}
+	encodedPolyBytes := polyline.EncodeCoords(all_coords)
+	encoded_poly := string(encodedPolyBytes)
 	if len(trackPoints_converted) > 0 {
 		last_point := trackPoints_converted[len(trackPoints_converted)-1]
 		log.Printf("last_point: %v", last_point)
@@ -103,7 +127,7 @@ func getLivetrack(ctx context.Context, req *proto.GetLivetrackRequest) (*proto.G
 		}
 	}
 
-	resp := &proto.GetLivetrackResponse{Polyline: &sample_poly,
+	resp := &proto.GetLivetrackResponse{Polyline: &encoded_poly,
 		Url:          &url,
 		Distance:     &distanceMeters,
 		ActivityType: &activityType,

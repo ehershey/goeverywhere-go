@@ -16,6 +16,7 @@ require (
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/spf13/cobra v1.8.1
 	github.com/srikrsna/protoc-gen-gotag v1.0.2
+	github.com/twpayne/go-polyline v1.1.1
 	go.mongodb.org/mongo-driver v1.17.2
 	golang.org/x/net v0.34.0
 	google.golang.org/genproto v0.0.0-20250115164207-1a7da9e5054f
