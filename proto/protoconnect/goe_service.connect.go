@@ -35,6 +35,10 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// GOEServiceGetKeyValueProcedure is the fully-qualified name of the GOEService's GetKeyValue RPC.
+	GOEServiceGetKeyValueProcedure = "/GOEService/GetKeyValue"
+	// GOEServiceSetKeyValueProcedure is the fully-qualified name of the GOEService's SetKeyValue RPC.
+	GOEServiceSetKeyValueProcedure = "/GOEService/SetKeyValue"
 	// GOEServiceGetStatsProcedure is the fully-qualified name of the GOEService's GetStats RPC.
 	GOEServiceGetStatsProcedure = "/GOEService/GetStats"
 	// GOEServiceGetPolylinesProcedure is the fully-qualified name of the GOEService's GetPolylines RPC.
@@ -54,6 +58,8 @@ const (
 // These variables are the protoreflect.Descriptor objects for the RPCs defined in this package.
 var (
 	gOEServiceServiceDescriptor            = proto.File_goe_service_proto.Services().ByName("GOEService")
+	gOEServiceGetKeyValueMethodDescriptor  = gOEServiceServiceDescriptor.Methods().ByName("GetKeyValue")
+	gOEServiceSetKeyValueMethodDescriptor  = gOEServiceServiceDescriptor.Methods().ByName("SetKeyValue")
 	gOEServiceGetStatsMethodDescriptor     = gOEServiceServiceDescriptor.Methods().ByName("GetStats")
 	gOEServiceGetPolylinesMethodDescriptor = gOEServiceServiceDescriptor.Methods().ByName("GetPolylines")
 	gOEServiceGetPointsMethodDescriptor    = gOEServiceServiceDescriptor.Methods().ByName("GetPoints")
@@ -65,6 +71,8 @@ var (
 
 // GOEServiceClient is a client for the GOEService service.
 type GOEServiceClient interface {
+	GetKeyValue(context.Context, *connect.Request[proto.GetKeyValueRequest]) (*connect.Response[proto.GetKeyValueResponse], error)
+	SetKeyValue(context.Context, *connect.Request[proto.SetKeyValueRequest]) (*connect.Response[proto.SetKeyValueResponse], error)
 	GetStats(context.Context, *connect.Request[proto.GetStatsRequest]) (*connect.Response[proto.GetStatsResponse], error)
 	GetPolylines(context.Context, *connect.Request[proto.GetPolylinesRequest]) (*connect.ServerStreamForClient[proto.GetPolylinesResponse], error)
 	GetPoints(context.Context, *connect.Request[proto.GetPointsRequest]) (*connect.ServerStreamForClient[proto.GetPointsResponse], error)
@@ -84,6 +92,18 @@ type GOEServiceClient interface {
 func NewGOEServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) GOEServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &gOEServiceClient{
+		getKeyValue: connect.NewClient[proto.GetKeyValueRequest, proto.GetKeyValueResponse](
+			httpClient,
+			baseURL+GOEServiceGetKeyValueProcedure,
+			connect.WithSchema(gOEServiceGetKeyValueMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
+		setKeyValue: connect.NewClient[proto.SetKeyValueRequest, proto.SetKeyValueResponse](
+			httpClient,
+			baseURL+GOEServiceSetKeyValueProcedure,
+			connect.WithSchema(gOEServiceSetKeyValueMethodDescriptor),
+			connect.WithClientOptions(opts...),
+		),
 		getStats: connect.NewClient[proto.GetStatsRequest, proto.GetStatsResponse](
 			httpClient,
 			baseURL+GOEServiceGetStatsProcedure,
@@ -131,6 +151,8 @@ func NewGOEServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...
 
 // gOEServiceClient implements GOEServiceClient.
 type gOEServiceClient struct {
+	getKeyValue  *connect.Client[proto.GetKeyValueRequest, proto.GetKeyValueResponse]
+	setKeyValue  *connect.Client[proto.SetKeyValueRequest, proto.SetKeyValueResponse]
 	getStats     *connect.Client[proto.GetStatsRequest, proto.GetStatsResponse]
 	getPolylines *connect.Client[proto.GetPolylinesRequest, proto.GetPolylinesResponse]
 	getPoints    *connect.Client[proto.GetPointsRequest, proto.GetPointsResponse]
@@ -138,6 +160,16 @@ type gOEServiceClient struct {
 	getLivetrack *connect.Client[proto.GetLivetrackRequest, proto.GetLivetrackResponse]
 	saveBookmark *connect.Client[proto.SaveBookmarkRequest, proto.SaveBookmarkResponse]
 	savePosition *connect.Client[proto.SavePositionRequest, proto.SavePositionResponse]
+}
+
+// GetKeyValue calls GOEService.GetKeyValue.
+func (c *gOEServiceClient) GetKeyValue(ctx context.Context, req *connect.Request[proto.GetKeyValueRequest]) (*connect.Response[proto.GetKeyValueResponse], error) {
+	return c.getKeyValue.CallUnary(ctx, req)
+}
+
+// SetKeyValue calls GOEService.SetKeyValue.
+func (c *gOEServiceClient) SetKeyValue(ctx context.Context, req *connect.Request[proto.SetKeyValueRequest]) (*connect.Response[proto.SetKeyValueResponse], error) {
+	return c.setKeyValue.CallUnary(ctx, req)
 }
 
 // GetStats calls GOEService.GetStats.
@@ -177,6 +209,8 @@ func (c *gOEServiceClient) SavePosition(ctx context.Context, req *connect.Reques
 
 // GOEServiceHandler is an implementation of the GOEService service.
 type GOEServiceHandler interface {
+	GetKeyValue(context.Context, *connect.Request[proto.GetKeyValueRequest]) (*connect.Response[proto.GetKeyValueResponse], error)
+	SetKeyValue(context.Context, *connect.Request[proto.SetKeyValueRequest]) (*connect.Response[proto.SetKeyValueResponse], error)
 	GetStats(context.Context, *connect.Request[proto.GetStatsRequest]) (*connect.Response[proto.GetStatsResponse], error)
 	GetPolylines(context.Context, *connect.Request[proto.GetPolylinesRequest], *connect.ServerStream[proto.GetPolylinesResponse]) error
 	GetPoints(context.Context, *connect.Request[proto.GetPointsRequest], *connect.ServerStream[proto.GetPointsResponse]) error
@@ -192,6 +226,18 @@ type GOEServiceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewGOEServiceHandler(svc GOEServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	gOEServiceGetKeyValueHandler := connect.NewUnaryHandler(
+		GOEServiceGetKeyValueProcedure,
+		svc.GetKeyValue,
+		connect.WithSchema(gOEServiceGetKeyValueMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
+	gOEServiceSetKeyValueHandler := connect.NewUnaryHandler(
+		GOEServiceSetKeyValueProcedure,
+		svc.SetKeyValue,
+		connect.WithSchema(gOEServiceSetKeyValueMethodDescriptor),
+		connect.WithHandlerOptions(opts...),
+	)
 	gOEServiceGetStatsHandler := connect.NewUnaryHandler(
 		GOEServiceGetStatsProcedure,
 		svc.GetStats,
@@ -236,6 +282,10 @@ func NewGOEServiceHandler(svc GOEServiceHandler, opts ...connect.HandlerOption) 
 	)
 	return "/GOEService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case GOEServiceGetKeyValueProcedure:
+			gOEServiceGetKeyValueHandler.ServeHTTP(w, r)
+		case GOEServiceSetKeyValueProcedure:
+			gOEServiceSetKeyValueHandler.ServeHTTP(w, r)
 		case GOEServiceGetStatsProcedure:
 			gOEServiceGetStatsHandler.ServeHTTP(w, r)
 		case GOEServiceGetPolylinesProcedure:
@@ -258,6 +308,14 @@ func NewGOEServiceHandler(svc GOEServiceHandler, opts ...connect.HandlerOption) 
 
 // UnimplementedGOEServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedGOEServiceHandler struct{}
+
+func (UnimplementedGOEServiceHandler) GetKeyValue(context.Context, *connect.Request[proto.GetKeyValueRequest]) (*connect.Response[proto.GetKeyValueResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("GOEService.GetKeyValue is not implemented"))
+}
+
+func (UnimplementedGOEServiceHandler) SetKeyValue(context.Context, *connect.Request[proto.SetKeyValueRequest]) (*connect.Response[proto.SetKeyValueResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("GOEService.SetKeyValue is not implemented"))
+}
 
 func (UnimplementedGOEServiceHandler) GetStats(context.Context, *connect.Request[proto.GetStatsRequest]) (*connect.Response[proto.GetStatsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("GOEService.GetStats is not implemented"))
