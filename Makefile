@@ -31,7 +31,7 @@ LDFLAGS += -X \"main.ModuleVersion=$(MODULE_VERSION)\"
 LDFLAGS += -s -w
 GOFLAGS = -tags BuildArgsIncluded
 
-goe: *.go */*.go $(GEN_FILES) Makefile .git/logs/HEAD .git/refs/tags/*
+goe: *.go */*.go $(GEN_FILES) Makefile
 	go build -ldflags "$(LDFLAGS)" $(GOFLAGS)
 
 run: goe
