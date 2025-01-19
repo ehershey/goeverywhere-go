@@ -31,7 +31,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 383
+const autoupdate_version = 386
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_SECS = 10
 const WRITE_TIMEOUT_SECS = 10
@@ -359,4 +359,18 @@ func (s *gOEServiceServer) SavePosition(
 	res := connect.NewResponse(response.raw)
 
 	return res, nil
+}
+
+func (s *gOEServiceServer) SetKeyValue(
+	ctx context.Context,
+	req *connect.Request[proto.SetKeyValueRequest]) (*connect.Response[proto.SetKeyValueResponse], error) {
+	log.Println("SetKeyValue request headers: ", req.Header())
+	return nil, fmt.Errorf("Unimplemented")
+}
+
+func (s *gOEServiceServer) GetKeyValue(
+	ctx context.Context,
+	req *connect.Request[proto.GetKeyValueRequest]) (*connect.Response[proto.GetKeyValueResponse], error) {
+	log.Println("GetKeyValue request headers: ", req.Header())
+	return nil, fmt.Errorf("Unimplemented")
 }
