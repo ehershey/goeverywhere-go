@@ -31,7 +31,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 386
+const autoupdate_version = 388
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_SECS = 10
 const WRITE_TIMEOUT_SECS = 10
@@ -118,7 +118,6 @@ func serve(handleJobs bool) {
 	r.Handle("/refresh_nodes", sentryHandler.Handle(RefreshNodesHandlerWithTiming))
 	r.Handle("/ignore_nodes", sentryHandler.Handle(IgnoreNodesHandlerWithTiming))
 	r.HandleFunc("/points", sentryHandler.HandleFunc(GetNodesHandler))
-	r.HandleFunc("/bookmarks", sentryHandler.HandleFunc(GetNodesHandler))
 	r.HandleFunc("/echo", sentryHandler.HandleFunc(echo))
 	r.HandleFunc("/kv", sentryHandler.HandleFunc(KeyValueHandler))
 	r.HandleFunc("/version", sentryHandler.HandleFunc(VersionHandler))
@@ -292,7 +291,18 @@ func (s *gOEServiceServer) GetBookmarks(
 	req *connect.Request[proto.GetBookmarksRequest],
 	stream *connect.ServerStream[proto.GetBookmarksResponse]) error {
 	log.Println("GetBookmarks request headers: ", req.Header())
-	return fmt.Errorf("Unimplemented")
+
+	for bookmark := range getBookmarks(ctx, req.Msg) {
+
+		if err := stream.Send(bookmark); err != nil {
+			wrappedErr := fmt.Errorf("Error sending res to stream: %w", err)
+			return wrappedErr
+		}
+		// to test streaming
+		//time.Sleep(200 * time.Millisecond)
+	}
+	log.Println("GetBookmarks finished streaming results")
+	return nil
 }
 
 func (s *gOEServiceServer) SaveBookmark(

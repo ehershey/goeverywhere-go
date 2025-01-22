@@ -21,11 +21,8 @@ const (
 )
 
 type GetPolylinesResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// google.protobuf.Timestamp oldest_polyline_timestamp = 1;
-	// google.protobuf.Timestamp newest_polyline_timestamp = 2;
-	// uint32 polyline_count = 3;
-	Polylines     []*ActivityPolyline `protobuf:"bytes,1,rep,name=polylines" json:"polylines,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Polylines     []*ActivityPolyline    `protobuf:"bytes,1,rep,name=polylines" json:"polylines,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
