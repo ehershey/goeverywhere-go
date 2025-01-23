@@ -45,6 +45,9 @@ goe.linux.arm64: test.success goe
 test: *.go db.created
 	go test -v ./... $(GOFLAGS) && scripts/verify_no_extra_output.sh && touch test.success
 
+vet:
+	go vet $(GOFLAGS) ./...
+
 test.success: test
 
 db.created: scripts/loadData.js scripts/setup_empty_db.sh
