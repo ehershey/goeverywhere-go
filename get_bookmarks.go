@@ -6,9 +6,9 @@ import (
 	"log"
 
 	"ernie.org/goe/proto"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"google.golang.org/genproto/googleapis/type/latlng"
 )
 
@@ -38,6 +38,7 @@ func getBookmarks(ctx context.Context, req *proto.GetBookmarksRequest) iter.Seq[
 			if err := cursor.Decode(&oldbookmark); err != nil {
 				log.Fatal(err)
 			}
+			log.Printf("oldbookmark.CreationDate: %v", oldbookmark.CreationDate)
 
 			newType := oldbookmark.GetLoc().GetType()
 			newCoordinates := latlng.LatLng{Latitude: oldbookmark.GetLat(), Longitude: oldbookmark.GetLon()}
@@ -48,6 +49,7 @@ func getBookmarks(ctx context.Context, req *proto.GetBookmarksRequest) iter.Seq[
 				Loc:          &newLoc,
 				CreationDate: oldbookmark.CreationDate,
 			}
+			log.Printf("bookmark.CreationDate: %v", bookmark.CreationDate)
 
 			if !yield(&proto.GetBookmarksResponse{Bookmark: &bookmark}) {
 				return

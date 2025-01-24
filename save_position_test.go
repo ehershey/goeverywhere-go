@@ -7,8 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 	latlng "google.golang.org/genproto/googleapis/type/latlng"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 
@@ -122,7 +121,7 @@ func TestSavePosition(t *testing.T) {
 	}
 	defer client.Disconnect(ctx)
 
-	oid, err := primitive.ObjectIDFromHex(*test_response.raw.SavedPoint.Id)
+	oid, err := bson.ObjectIDFromHex(*test_response.raw.SavedPoint.Id)
 	if err != nil {
 		t.Fatalf("got an error: %v", err)
 	}
@@ -277,7 +276,7 @@ func TestSavePositionZeroFields(t *testing.T) {
 	}
 	defer client.Disconnect(ctx)
 
-	oid, err := primitive.ObjectIDFromHex(*test_response.raw.SavedPoint.Id)
+	oid, err := bson.ObjectIDFromHex(*test_response.raw.SavedPoint.Id)
 	if err != nil {
 		t.Fatalf("got an error: %v", err)
 	}

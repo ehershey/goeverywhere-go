@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"ernie.org/goe/proto"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func savePosition(ctx context.Context, entry_source string, req *proto.SavePositionRequest) (*savePositionResponse, error) {
@@ -48,7 +48,7 @@ func savePosition(ctx context.Context, entry_source string, req *proto.SavePosit
 		log.Println("got an error:", wrappedErr)
 		return nil, wrappedErr
 	}
-	id := result.InsertedID.(primitive.ObjectID).Hex()
+	id := result.InsertedID.(bson.ObjectID).Hex()
 	point.Id = &id
 
 	status := "OK"

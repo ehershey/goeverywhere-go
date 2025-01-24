@@ -15,10 +15,9 @@ import (
 
 	"github.com/gorilla/schema"
 	servertiming "github.com/mitchellh/go-server-timing"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 const nodes_collection_name = "nodes"
@@ -55,18 +54,18 @@ type Point struct {
 }
 
 type Node struct {
-	Id              primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
-	CreationDate    time.Time          `bson:"creation_date" json:"creation_date"`
-	Loc             Point              `bson:"loc" json:"loc"`
-	ExternalId      int                `bson:"external_id,omitempty" json:"external_id"`
-	Priority        bool               `bson:"priority" json:"priority"`
-	Ignored         bool               `bson:"ignored" json:"ignored"`
-	StreetName      string             `bson:"street_name" json:"street_name"`
-	StreetNodeCount int                `bson:"street_node_count" json:"street_node_count"`
-	CityName        string             `bson:"city_name" json:"city_name"`
-	StreetID        int                `bson:"street_id" json:"street_id"`
-	CityID          int                `bson:"city_id" json:"city_id"`
-	Deactivated     bool               `bson:"deactivated" json:"deactivated"`
+	Id              bson.ObjectID `bson:"_id,omitempty" json:"_id"`
+	CreationDate    time.Time     `bson:"creation_date" json:"creation_date"`
+	Loc             Point         `bson:"loc" json:"loc"`
+	ExternalId      int           `bson:"external_id,omitempty" json:"external_id"`
+	Priority        bool          `bson:"priority" json:"priority"`
+	Ignored         bool          `bson:"ignored" json:"ignored"`
+	StreetName      string        `bson:"street_name" json:"street_name"`
+	StreetNodeCount int           `bson:"street_node_count" json:"street_node_count"`
+	CityName        string        `bson:"city_name" json:"city_name"`
+	StreetID        int           `bson:"street_id" json:"street_id"`
+	CityID          int           `bson:"city_id" json:"city_id"`
+	Deactivated     bool          `bson:"deactivated" json:"deactivated"`
 }
 
 func (n *Node) GetLat() float64 {

@@ -7,23 +7,13 @@ import (
 	"encoding/json"
 	"time"
 
-	// "errors"
 	"fmt"
-	// "github.com/gorilla/schema"
-
-	// "go.mongodb.org/mongo-driver/bson"
-	// "go.mongodb.org/mongo-driver/bson/primitive"
-	// "go.mongodb.org/mongo-driver/mongo"
-	// "go.mongodb.org/mongo-driver/mongo/options"
 
 	"log"
 	"net/http"
 
 	servertiming "github.com/mitchellh/go-server-timing"
-	"go.mongodb.org/mongo-driver/bson"
-	// "strconv"
-	// "strings"
-	// "time"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 // IgnoreNodesOptions is options for ignoring nodes

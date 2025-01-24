@@ -9,9 +9,9 @@ import (
 
 	"ernie.org/goe/proto"
 	servertiming "github.com/mitchellh/go-server-timing"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -114,15 +114,22 @@ func getStats(ctx context.Context, req *proto.GetStatsRequest) (*proto.GetStatsR
 		return nil, wrappedErr
 	}
 
-	distinct, err := collection.Distinct(ctx, "entry_source", empty_query)
+	distinct := collection.Distinct(ctx, "entry_source", empty_query)
+
+	err = distinct.Err()
+	if err != nil {
+		wrappedErr := fmt.Errorf("error making distinct call: %w", err)
+		return nil, wrappedErr
+	}
 
 	EntrySources := []string{}
 
-	for _, result := range distinct {
-		if result != nil {
-			EntrySources = append(EntrySources, result.(string))
-		}
-	}
+	err = distinct.Decode(&EntrySources)
+	//for _, result := range  {
+	//if result != nil {
+	//EntrySources = append(EntrySources, result.(string))
+	//}
+	//}
 
 	if err != nil {
 		wrappedErr := fmt.Errorf("got an error getting entry sources: %w", err)

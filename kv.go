@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 const kv_collection_name = "goekv"
@@ -92,7 +92,7 @@ func getKV(roptions KeyValueOptions) (string, error) {
 	var value string
 
 	if roptions.V != "" {
-		update_opts := options.Update().SetUpsert(true)
+		update_opts := options.UpdateOne().SetUpsert(true)
 		value = roptions.V
 		_, err := collection.UpdateOne(ctx, query, update, update_opts)
 		if err != nil {

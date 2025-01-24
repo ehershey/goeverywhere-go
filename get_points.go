@@ -12,9 +12,8 @@ import (
 
 	"ernie.org/goe/proto"
 	servertiming "github.com/mitchellh/go-server-timing"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 	"google.golang.org/genproto/googleapis/type/latlng"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -148,16 +147,16 @@ func getPoints(ctx context.Context, req *proto.GetPointsRequest) (iter.Seq2[*pro
 
 // copied from livetrack_db.go
 type gps_log_point struct {
-	Id               primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	EntrySource      string             `json:"entry_source" bson:"entry_source"`
-	Altitude         float32            `json:"altitude,omitempty" bson:"altitude,truncate,omitempty"`
-	Speed            float32            `json:"speed,omitempty" bson:"speed,omitempty"`
-	EntryDate        time.Time          `json:"entry_date" bson:"entry_date"`
-	Loc              geopoint           `json:"loc"`
-	ActivityType     string             `json:"activityType,omitempty" bson:"activityType,omitempty"`
-	Heading          float32            `json:"heading,omitempty" bson:"heading,omitempty"`
-	Accuracy         float32            `json:"accuracy,omitempty" bson:"accuracy,truncate,omitempty"`
-	AltitudeAccuracy float32            `json:"altitude_accuracy,omitempty" bson:"altitude_accuracy,truncate,omitempty"`
+	Id               bson.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	EntrySource      string        `json:"entry_source" bson:"entry_source"`
+	Altitude         float32       `json:"altitude,omitempty" bson:"altitude,truncate,omitempty"`
+	Speed            float32       `json:"speed,omitempty" bson:"speed,omitempty"`
+	EntryDate        time.Time     `json:"entry_date" bson:"entry_date"`
+	Loc              geopoint      `json:"loc"`
+	ActivityType     string        `json:"activityType,omitempty" bson:"activityType,omitempty"`
+	Heading          float32       `json:"heading,omitempty" bson:"heading,omitempty"`
+	Accuracy         float32       `json:"accuracy,omitempty" bson:"accuracy,truncate,omitempty"`
+	AltitudeAccuracy float32       `json:"altitude_accuracy,omitempty" bson:"altitude_accuracy,truncate,omitempty"`
 }
 
 type geopoint struct {
