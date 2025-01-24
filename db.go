@@ -14,27 +14,11 @@ import (
 
 const STRAVA_COLLECTION_NAME = "activities"
 
-var timevar time.Time
-
 func getCollectionByName(collection_name string) (*mongo.Client, *mongo.Collection, error) {
 	reg := bson.NewRegistry()
 
-	//codecOpt := bsonoptions.StringCodec().SetDecodeObjectIDAsHex(true)
-	//strCodec := bsoncodec.NewStringCodec(codecOpt)
-
-	//reg := bson.NewRegistryBuilder().RegisterDefaultDecoder(reflect.String, strCodec).Build()
-
-	//dc := bsoncodec.DecodeContext{Registry: reg}
-
-	//decoder := bson.NewDecoder(bson.NewDocumentReader(bytes.NewReader([]byte{})))
-	//decoder.ObjectIDAsHexString()
-
-	// reg := codecs.Register(bson.NewRegistryBuilder()).Build()
-	//var oidvar bson.ObjectID
-	//var oidtype = reflect.TypeOf(oidvar)
-	//reg.RegisterTypeDecoder(oidtype, decoder)
-	//reg.RegisterTypeDecoder(reflect.TypeOf(timevar),
-	//bson.ValueDecoderFunc(timeDecoder))
+	reg.RegisterTypeDecoder(reflect.TypeOf(&timestamppb.Timestamp{}), bson.ValueDecoderFunc(timeDecoder))
+	reg.RegisterTypeDecoder(reflect.TypeOf(timestamppb.Timestamp{}), bson.ValueDecoderFunc(timeDecoder))
 
 	config, err := GetConfig()
 	if err != nil {
@@ -54,12 +38,6 @@ func getCollectionByName(collection_name string) (*mongo.Client, *mongo.Collecti
 		wrappedErr := fmt.Errorf("Error creating mongodb client: %w", err)
 		return nil, nil, wrappedErr
 	}
-	//ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	//defer cancel()
-	// if err := client.Connect(ctx); err != nil {
-	// wrappedErr := fmt.Errorf("Error connecting to mongodb: %w", err)
-	// return nil, nil, wrappedErr
-	// }
 	collection := client.Database(db_name).Collection(collection_name)
 	return client, collection, nil
 }
@@ -71,7 +49,7 @@ func timeDecoder(
 ) error {
 	// All decoder implementations should check that val is valid, settable,
 	// and is of the correct kind before proceeding.
-	timeType := reflect.TypeOf(timevar)
+	timeType := reflect.TypeOf(&timestamppb.Timestamp{})
 	if !val.IsValid() || !val.CanSet() || val.Type() != timeType {
 		return bson.ValueDecoderError{
 			Name:     "timeDecoder",
@@ -80,21 +58,31 @@ func timeDecoder(
 		}
 	}
 
-	var result timestamppb.Timestamp
+	var result time.Time
 	switch vr.Type() {
+	case bson.TypeDateTime:
+		t, err := vr.ReadDateTime()
+		//t, _, err := vr.ReadTimestamp()
+		if err != nil {
+			wrappedErr := fmt.Errorf("Error reading bson datetime: %w", err)
+			return wrappedErr
+		}
+		result = time.Unix(t/1000, 0)
 	case bson.TypeTimestamp:
 		t, _, err := vr.ReadTimestamp()
 		if err != nil {
-			return err
+			wrappedErr := fmt.Errorf("Error reading bson timestamp: %w", err)
+			return wrappedErr
 		}
-		ts := &timestamppb.Timestamp{Seconds: int64(t)}
-		result = *ts
+		result = time.Unix(int64(t), 0)
 	default:
 		return fmt.Errorf(
 			"received invalid BSON type to decode into time: %s",
 			vr.Type())
 	}
 
-	val.Set(reflect.ValueOf(result))
+	tspbval := timestamppb.New(result)
+	tspbrefval := reflect.ValueOf(tspbval)
+	val.Set(tspbrefval)
 	return nil
 }

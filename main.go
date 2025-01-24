@@ -31,7 +31,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 388
+const autoupdate_version = 391
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_SECS = 10
 const WRITE_TIMEOUT_SECS = 10
@@ -292,8 +292,13 @@ func (s *gOEServiceServer) GetBookmarks(
 	stream *connect.ServerStream[proto.GetBookmarksResponse]) error {
 	log.Println("GetBookmarks request headers: ", req.Header())
 
-	for bookmark := range getBookmarks(ctx, req.Msg) {
+	for bookmark, err := range getBookmarks(ctx, req.Msg) {
 
+		if err != nil {
+			wrappedErr := fmt.Errorf("Error from getBookmarks: %w", err)
+			log.Printf("Got an error: %v\n", wrappedErr)
+			continue
+		}
 		if err := stream.Send(bookmark); err != nil {
 			wrappedErr := fmt.Errorf("Error sending res to stream: %w", err)
 			return wrappedErr

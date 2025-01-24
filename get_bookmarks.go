@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"iter"
 	"log"
 
@@ -20,25 +21,33 @@ func getBookmarksCollection() (*mongo.Client, *mongo.Collection, error) {
 	return getCollectionByName(bookmarks_collection_name)
 }
 
-func getBookmarks(ctx context.Context, req *proto.GetBookmarksRequest) iter.Seq[*proto.GetBookmarksResponse] {
+func getBookmarks(ctx context.Context, req *proto.GetBookmarksRequest) iter.Seq2[*proto.GetBookmarksResponse, error] {
 
-	return func(yield func(*proto.GetBookmarksResponse) bool) {
+	return func(yield func(*proto.GetBookmarksResponse, error) bool) {
 		_, coll, err := getBookmarksCollection()
 		if err != nil {
-			panic(err)
+			wrappedErr := fmt.Errorf("error getting bookmarks collection: %w", err)
+			log.Printf("Got an error: %v\n", wrappedErr)
+			yield(nil, wrappedErr)
 		}
 		filter := bson.D{}
 		opts := options.Find().SetLimit(default_bookmark_limit)
 		cursor, err := coll.Find(ctx, filter, opts)
 		if err != nil {
-			panic(err)
+			wrappedErr := fmt.Errorf("error running Find() on bookmarks collection: %w", err)
+			log.Printf("Got an error: %v\n", wrappedErr)
+			yield(nil, wrappedErr)
 		}
 		for cursor.Next(ctx) {
+			log.Printf("In cursor.Next() loop\n")
 			var oldbookmark *proto.OldBookmark
 			if err := cursor.Decode(&oldbookmark); err != nil {
-				log.Fatal(err)
+				log.Printf("In cursor.Next() loop got err\n")
+				wrappedErr := fmt.Errorf("error decoding bookmark: %w", err)
+				log.Printf("Got an error: %v\n", wrappedErr)
+				yield(nil, wrappedErr)
 			}
-			log.Printf("oldbookmark.CreationDate: %v", oldbookmark.CreationDate)
+			log.Printf("oldbookmark.CreationDate: %v\n", oldbookmark.CreationDate)
 
 			newType := oldbookmark.GetLoc().GetType()
 			newCoordinates := latlng.LatLng{Latitude: oldbookmark.GetLat(), Longitude: oldbookmark.GetLon()}
@@ -49,13 +58,16 @@ func getBookmarks(ctx context.Context, req *proto.GetBookmarksRequest) iter.Seq[
 				Loc:          &newLoc,
 				CreationDate: oldbookmark.CreationDate,
 			}
-			log.Printf("bookmark.CreationDate: %v", bookmark.CreationDate)
+			log.Printf("bookmark.CreationDate: %v\n", bookmark.CreationDate)
 
-			if !yield(&proto.GetBookmarksResponse{Bookmark: &bookmark}) {
+			if !yield(&proto.GetBookmarksResponse{Bookmark: &bookmark}, nil) {
+				log.Printf("Returning in iterator function\n")
 				return
 			}
 			if err := cursor.Err(); err != nil {
-				log.Fatal(err)
+				wrappedErr := fmt.Errorf("error from bookmarks cursor: %w", err)
+				log.Printf("Got an error: %v\n", wrappedErr)
+				yield(nil, wrappedErr)
 			}
 		}
 	}
