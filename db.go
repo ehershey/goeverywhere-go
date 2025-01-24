@@ -20,6 +20,9 @@ func getCollectionByName(collection_name string) (*mongo.Client, *mongo.Collecti
 	reg.RegisterTypeDecoder(reflect.TypeOf(&timestamppb.Timestamp{}), bson.ValueDecoderFunc(timeDecoder))
 	reg.RegisterTypeDecoder(reflect.TypeOf(timestamppb.Timestamp{}), bson.ValueDecoderFunc(timeDecoder))
 
+	reg.RegisterTypeEncoder(reflect.TypeOf(&timestamppb.Timestamp{}), bson.ValueEncoderFunc(timeEncoder))
+	reg.RegisterTypeEncoder(reflect.TypeOf(timestamppb.Timestamp{}), bson.ValueEncoderFunc(timeEncoder))
+
 	config, err := GetConfig()
 	if err != nil {
 		log.Fatal(err)
@@ -84,5 +87,37 @@ func timeDecoder(
 	tspbval := timestamppb.New(result)
 	tspbrefval := reflect.ValueOf(tspbval)
 	val.Set(tspbrefval)
+	return nil
+}
+
+func timeEncoder(
+	_ bson.EncodeContext,
+	vw bson.ValueWriter,
+	val reflect.Value,
+) error {
+	// All decoder implementations should check that val is valid, settable,
+	// and is of the correct kind before proceeding.
+	timeType := reflect.TypeOf(&timestamppb.Timestamp{})
+	if !val.IsValid() || !val.CanSet() || val.Type() != timeType {
+		return bson.ValueEncoderError{
+			Name:     "timeEncoder",
+			Types:    []reflect.Type{timeType},
+			Received: val,
+		}
+	}
+
+	valtype := val.Type()
+	switch valtype {
+	case timeType:
+		err := vw.WriteDateTime(val.Elem().FieldByName("Seconds").Int() * 1000)
+		if err != nil {
+			panic(err)
+		}
+	default:
+		return fmt.Errorf(
+			"received invalid time type to encode into BSON: %s",
+			valtype)
+	}
+
 	return nil
 }

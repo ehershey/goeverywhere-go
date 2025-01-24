@@ -31,7 +31,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 391
+const autoupdate_version = 398
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_SECS = 10
 const WRITE_TIMEOUT_SECS = 10
@@ -314,7 +314,12 @@ func (s *gOEServiceServer) SaveBookmark(
 	ctx context.Context,
 	req *connect.Request[proto.SaveBookmarkRequest]) (*connect.Response[proto.SaveBookmarkResponse], error) {
 	log.Println("SaveBookmark request headers: ", req.Header())
-	return nil, fmt.Errorf("Unimplemented")
+	resp, err := saveBookmark(ctx, "Automatic Label", req.Msg)
+	if err != nil {
+		wrappedErr := fmt.Errorf("Error calling saveBookmark: %w", err)
+		return nil, wrappedErr
+	}
+	return connect.NewResponse(resp), nil
 }
 
 func (s *gOEServiceServer) GetPolylines(
