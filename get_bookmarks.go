@@ -47,7 +47,6 @@ func getBookmarks(ctx context.Context, req *proto.GetBookmarksRequest) iter.Seq2
 				log.Printf("Got an error: %v\n", wrappedErr)
 				yield(nil, wrappedErr)
 			}
-			log.Printf("oldbookmark.CreationDate: %v\n", oldbookmark.CreationDate)
 
 			newType := oldbookmark.GetLoc().GetType()
 			newCoordinates := latlng.LatLng{Latitude: oldbookmark.GetLat(), Longitude: oldbookmark.GetLon()}
@@ -58,7 +57,6 @@ func getBookmarks(ctx context.Context, req *proto.GetBookmarksRequest) iter.Seq2
 				Loc:          &newLoc,
 				CreationDate: oldbookmark.CreationDate,
 			}
-			log.Printf("bookmark.CreationDate: %v\n", bookmark.CreationDate)
 
 			if !yield(&proto.GetBookmarksResponse{Bookmark: &bookmark}, nil) {
 				log.Printf("Returning in iterator function\n")
