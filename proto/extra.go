@@ -1,11 +1,11 @@
 package proto
 
 func (og *OldGeometry) GetLat() float64 {
-	return float64(og.Coordinates[0])
+	return float64(og.Coordinates[1])
 }
 
 func (og *OldGeometry) GetLon() float64 {
-	return float64(og.Coordinates[1])
+	return float64(og.Coordinates[0])
 }
 
 func (ob *OldBookmark) GetLon() float64 {
