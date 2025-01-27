@@ -22,7 +22,7 @@ func saveBookmark(ctx context.Context, label string, req *proto.SaveBookmarkRequ
 	}
 
 	pointtype := "Point"
-	bookmark := &proto.OldBookmark{Label: &label, Loc: &proto.OldGeometry{Coordinates: []float32{float32(req.Loc.GetLat()), float32(req.Loc.GetLon())}, Type: &pointtype}, CreationDate: timestamppb.Now()}
+	bookmark := &proto.OldBookmark{Label: &label, Loc: &proto.OldGeometry{Coordinates: []float32{float32(req.Loc.GetLon()), float32(req.Loc.GetLat())}, Type: &pointtype}, CreationDate: timestamppb.Now()}
 
 	if err := validateBookmark(bookmark); err != nil {
 		wrappedErr := fmt.Errorf("Error validating bookmark: %w", err)
