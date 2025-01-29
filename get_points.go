@@ -2,18 +2,17 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"iter"
 	"log"
-	"net/http"
 	"time"
 
 	"ernie.org/goe/proto"
-	servertiming "github.com/mitchellh/go-server-timing"
+	"github.com/getsentry/sentry-go"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"google.golang.org/genproto/googleapis/type/latlng"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -24,65 +23,45 @@ func getPointsCollection() (*mongo.Client, *mongo.Collection, error) {
 	return getCollectionByName(points_collection_name)
 }
 
-// GetPointsHandlerWithTiming wraps our handler with
-// the server timing middleware
-var GetPointsHandlerWithTiming = servertiming.Middleware(http.HandlerFunc(GetPointsHandler), nil)
-
-// GetPointsHandler returns Points for gps_log data
-// without server timing headers
-func GetPointsHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	timing := servertiming.FromContext(ctx)
-
-	metric := timing.NewMetric("get status").Start()
-
-	metric.Stop()
-
-	// for excludes:
-	// https://stackoverflow.com/a/37533144/408885
-	// func arrayToString(a []int, delim string) string {
-	// return strings.Trim(strings.Replace(fmt.Sprint(a), " ", delim, -1), "[]")
-	// //return strings.Trim(strings.Join(strings.Split(fmt.Sprint(a), " "), delim), "[]")
-	// //return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(a)), delim), "[]")
-	// }
-	req := proto.GetPointsRequest{}
-	stats, err := getPoints(ctx, &req)
-
-	if err != nil {
-		log.Printf("Got an error calling getPoints(ctx,&req): %v\n", err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(stats); err != nil {
-		fmt.Printf("Error encoding points: %v\n", err)
-	}
-
-}
-
-func getPoints(ctx context.Context, req *proto.GetPointsRequest) (iter.Seq2[*proto.GetPointsResponse, error], error) {
-
-	client, collection, err := getPointsCollection()
-	if err != nil {
-		wrappedErr := fmt.Errorf("got an error calling getPointsCollection(): %w", err)
-		return nil, wrappedErr
-	}
-
+func getPoints(ctx context.Context, req *proto.GetPointsRequest) iter.Seq2[*proto.GetPointsResponse, error] {
+	//return func(yield func(V, error) bool) {
 	defer func() {
-		err := client.Disconnect(ctx)
+		err := recover()
+
 		if err != nil {
-			fmt.Printf("Error disconnecting from db: %v\n", err)
+			log.Printf("got error in defered getPoints() func\n")
+			log.Printf("got error in defered getPoints() func: %v\n", err)
+			sentry.CurrentHub().Recover(err)
+			sentry.Flush(time.Second * 5)
 		}
 	}()
 
-	log.Println("got db client and collection ref")
-	//return func(yield func(V, error) bool) {
-
 	return func(yield func(*proto.GetPointsResponse, error) bool) {
-		// ctx, cancel := context.WithTimeout(context.Background(), default_timeout_seconds*time.Second)
-		// defer cancel()
+		log.Printf("getPoints() in yield func\n")
+		defer func() {
+			err := recover()
+
+			if err != nil {
+				log.Printf("got error in defered yield() func\n")
+				log.Printf("got error in defered yield() func: %v\n", err)
+				sentry.CurrentHub().Recover(err)
+				sentry.Flush(time.Second * 5)
+			}
+		}()
+
+		client, collection, err := getPointsCollection()
+		if err != nil {
+			wrappedErr := fmt.Errorf("got an error calling getPointsCollection(): %w", err)
+			yield(nil, wrappedErr)
+		}
+		log.Printf("getPoints() got db client and collection ref\n")
+
+		defer func() {
+			err := client.Disconnect(ctx)
+			if err != nil {
+				fmt.Printf("Error disconnecting from db: %v\n", err)
+			}
+		}()
 
 		if req.GetMinLon() > req.GetMaxLon() {
 			yield(nil, errors.New("min_lon must be <= max_lon"))
@@ -93,6 +72,7 @@ func getPoints(ctx context.Context, req *proto.GetPointsRequest) (iter.Seq2[*pro
 			return
 		}
 
+		log.Printf("getPoints() got past minmax checks\n")
 		var ands []bson.M
 
 		if req.GetMinLon() != 0 || req.GetMinLat() != 0 || req.GetMaxLon() != 0 || req.GetMaxLat() != 0 {
@@ -114,19 +94,35 @@ func getPoints(ctx context.Context, req *proto.GetPointsRequest) (iter.Seq2[*pro
 
 			ands = append(ands, box_query)
 		}
+		log.Printf("getPoints() got past minmax config\n")
+		query := bson.M{}
+		if len(ands) > 0 {
+			query["$and"] = ands
+		}
 
-		query := bson.D{{Key: "MaxLat", Value: req.MaxLat}}
-		cursor, err := collection.Find(ctx, query)
+		// E QUERY_DEFAULT_LIMIT = 20000 # E: Expected a { to open the function definition.
+		//default_point_limit := 20000
+		default_point_limit := 20
+		limit := int64(default_point_limit)
+		if req.Limit != nil {
+			limit = int64(req.GetLimit())
+		}
+		log.Printf("getPoints() query: %v\n", query)
+		cursor, err := collection.Find(ctx, query, options.Find().SetLimit(limit))
+		log.Printf("getPoints() ran Find()\n")
 
 		if err != nil {
 			wrappedErr := fmt.Errorf("got an error calling collection.FindMany(...) for points: %w", err)
 			yield(nil, wrappedErr)
 			return
 		}
+		log.Printf("getPoints() checked Find() error\n")
 		for cursor.Next(ctx) {
 			var result *gps_log_point
 			if err := cursor.Decode(&result); err != nil {
-				log.Fatal(err)
+				wrappedErr := fmt.Errorf("got an error decoding from cursor: %w", err)
+				log.Printf("Got an error: %v", wrappedErr)
+				yield(nil, wrappedErr)
 			}
 
 			latLng := latlng.LatLng{Longitude: result.GetLon(), Latitude: result.GetLat()}
@@ -135,14 +131,17 @@ func getPoints(ctx context.Context, req *proto.GetPointsRequest) (iter.Seq2[*pro
 			point := proto.Point{Loc: &geom, EntryDate: timestamppb.New(result.GetEntryDate())}
 
 			if !yield(&proto.GetPointsResponse{Point: &point}, nil) {
+				log.Printf("yield returned false - returning\n")
 				return
 			}
 			if err := cursor.Err(); err != nil {
-				log.Fatal(err)
+				wrappedErr := fmt.Errorf("got an error from cursor: %w", err)
+				log.Printf("Got an error: %v", wrappedErr)
+				yield(nil, wrappedErr)
 			}
 		}
 
-	}, nil
+	}
 }
 
 // copied from livetrack_db.go

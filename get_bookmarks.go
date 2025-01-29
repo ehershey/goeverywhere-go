@@ -39,7 +39,6 @@ func getBookmarks(ctx context.Context, req *proto.GetBookmarksRequest) iter.Seq2
 			yield(nil, wrappedErr)
 		}
 		for cursor.Next(ctx) {
-			log.Printf("In cursor.Next() loop\n")
 			var oldbookmark *proto.OldBookmark
 			if err := cursor.Decode(&oldbookmark); err != nil {
 				log.Printf("In cursor.Next() loop got err\n")

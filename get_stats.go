@@ -76,7 +76,7 @@ func getStats(ctx context.Context, req *proto.GetStatsRequest) (*proto.GetStatsR
 		}
 	}()
 
-	log.Println("got db client and collection ref")
+	log.Println("getStats() got db client and collection ref")
 
 	oldest_find_opts := options.FindOne()
 	empty_query := bson.D{}

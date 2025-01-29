@@ -1,6 +1,3 @@
-//go:build BuildArgsIncluded
-// +build BuildArgsIncluded
-
 package main
 
 import (
@@ -31,7 +28,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 399
+const autoupdate_version = 419
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_SECS = 10
 const WRITE_TIMEOUT_SECS = 10
@@ -41,6 +38,16 @@ const IDLE_TIMEOUT_SECS = 20
 var routes []string
 
 func main() {
+	defer func() {
+		err := recover()
+
+		if err != nil {
+			log.Printf("got error in defered main() func\n")
+			log.Printf("got error in defered main() func: %v\n", err)
+			sentry.CurrentHub().Recover(err)
+			sentry.Flush(time.Second * 5)
+		}
+	}()
 
 	bi, ok := debug.ReadBuildInfo()
 	if !ok || ModuleVersion == "" {
@@ -265,8 +272,38 @@ func (s *gOEServiceServer) GetPoints(
 	ctx context.Context,
 	req *connect.Request[proto.GetPointsRequest],
 	stream *connect.ServerStream[proto.GetPointsResponse]) error {
-	log.Println("GetPoints request headers: ", req.Header())
-	return fmt.Errorf("Unimplemented")
+	log.Printf("GetPoints request: %v\n", req.Msg)
+	defer func() {
+		err := recover()
+
+		if err != nil {
+			log.Printf("got error in defered GetPoints() func\n")
+			log.Printf("got error in defered GetPoints() func: %v\n", err)
+			sentry.CurrentHub().Recover(err)
+			sentry.Flush(time.Second * 5)
+		}
+	}()
+
+	log.Printf("GetPoints starting streaming results\n")
+	streamed := 0
+	for point, err := range getPoints(ctx, req.Msg) {
+		streamed++
+
+		if err != nil {
+			wrappedErr := fmt.Errorf("Error from getPoints: %w", err)
+			log.Printf("Got an error: %v\n", wrappedErr)
+			continue
+		}
+		if err := stream.Send(point); err != nil {
+			wrappedErr := fmt.Errorf("Error sending res to stream after %d items: %w", streamed, err)
+			log.Printf("Got an error: %v\n", wrappedErr)
+			return wrappedErr
+		}
+		// to test streaming
+		//time.Sleep(200 * time.Millisecond)
+	}
+	log.Println("GetPoints finished streaming results")
+	return nil
 }
 
 func (s *gOEServiceServer) GetLivetrack(
