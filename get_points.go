@@ -95,6 +95,14 @@ func getPoints(ctx context.Context, req *proto.GetPointsRequest) iter.Seq2[*prot
 			ands = append(ands, box_query)
 		}
 		log.Printf("getPoints() got past minmax config\n")
+
+		log.Printf("req.GetFrom(): %v\n", req.GetFrom())
+		log.Printf("req.GetTo(): %v\n", req.GetTo())
+		if req.GetFrom() != nil && req.GetTo() != nil {
+			time_query := bson.M{"entry_date": bson.M{"$gte": req.GetFrom(), "$lte": req.GetTo()}}
+			ands = append(ands, time_query)
+		}
+
 		query := bson.M{}
 		if len(ands) > 0 {
 			query["$and"] = ands
@@ -102,13 +110,17 @@ func getPoints(ctx context.Context, req *proto.GetPointsRequest) iter.Seq2[*prot
 
 		// E QUERY_DEFAULT_LIMIT = 20000 # E: Expected a { to open the function definition.
 		//default_point_limit := 20000
-		default_point_limit := 20
+		default_point_limit := 2000
 		limit := int64(default_point_limit)
 		if req.Limit != nil {
 			limit = int64(req.GetLimit())
 		}
+		sort := bson.M{"entry_date": 1}
+		opts := options.Find().SetLimit(limit).SetSort(sort)
 		log.Printf("getPoints() query: %v\n", query)
-		cursor, err := collection.Find(ctx, query, options.Find().SetLimit(limit))
+		log.Printf("getPoints() sort: %v\n", sort)
+		log.Printf("getPoints() opts: %v\n", opts)
+		cursor, err := collection.Find(ctx, query, opts)
 		log.Printf("getPoints() ran Find()\n")
 
 		if err != nil {
@@ -128,7 +140,10 @@ func getPoints(ctx context.Context, req *proto.GetPointsRequest) iter.Seq2[*prot
 			latLng := latlng.LatLng{Longitude: result.GetLon(), Latitude: result.GetLat()}
 			geom := proto.Geometry{Coordinates: &latLng}
 
-			point := proto.Point{Loc: &geom, EntryDate: timestamppb.New(result.GetEntryDate())}
+			point := proto.Point{Loc: &geom, EntryDate: timestamppb.New(result.GetEntryDate()),
+				EntrySource:  &result.EntrySource,
+				ActivityType: &result.ActivityType,
+			}
 
 			if !yield(&proto.GetPointsResponse{Point: &point}, nil) {
 				log.Printf("yield returned false - returning\n")

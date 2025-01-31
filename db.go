@@ -95,10 +95,13 @@ func timeEncoder(
 	vw bson.ValueWriter,
 	val reflect.Value,
 ) error {
-	// All decoder implementations should check that val is valid, settable,
-	// and is of the correct kind before proceeding.
 	timeType := reflect.TypeOf(&timestamppb.Timestamp{})
-	if !val.IsValid() || !val.CanSet() || val.Type() != timeType {
+	if !val.IsValid() || val.Type() != timeType {
+		log.Printf(" val.IsValid() : %v", val.IsValid())
+		log.Printf(" val.CanSet() : %v", val.CanSet())
+		log.Printf(" val.Type()  : %v", val.Type())
+		log.Printf(" timeType: %v", timeType)
+
 		return bson.ValueEncoderError{
 			Name:     "timeEncoder",
 			Types:    []reflect.Type{timeType},
