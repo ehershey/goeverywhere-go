@@ -29,6 +29,9 @@ tasks:
         cd ${reponame}
         ./scripts/setup_empty_db.sh
         make test
+    - deploy: |
+        cd ${reponame}
+        make deploy
 triggers:
   - action: email
     condition: always

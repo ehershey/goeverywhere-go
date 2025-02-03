@@ -56,14 +56,12 @@ db.created: scripts/loadData.js scripts/setup_empty_db.sh
 deploy: goe.linux.arm64 goe
 	echo latest version:
 	./goe --version
-	echo deployed version:
-	ssh oci1 if test -e /usr/local/bin/goe \; then /usr/local/bin/goe --version \; fi
-	scp goe.linux.arm64 goe.service oci1:
-	# if no previous version, copy new version into place so remaining commands will work
-	ssh -t oci1 if test -e /usr/local/bin/goe \; then cp -pri /usr/local/bin/goe goe.`date +%s` \; else sudo cp -pri goe.linux.arm64 /usr/local/bin/goe \; fi
-	# if no previous version, copy new version into place so remaining commands will work
-	ssh -t oci1 if test -e /etc/systemd/system/goe.service \; then cp -pri /etc/systemd/system/goe.service goe.service.`date +%s` \; else sudo cp -pri goe.service /etc/systemd/system \; fi
-	ssh -t oci1 'sudo sh -c "mv /usr/local/bin/goe /usr/local/bin/goe.last && mv goe.linux.arm64 /usr/local/bin/goe && chcon --reference /usr/local/bin/goe.last /usr/local/bin/goe && systemctl restart goe"'
+	echo Checking deployed version and backing up if present:
+	ssh goe@oci1 "if test -e ./goe ; then ./goe --version ; cp -pr ./goe ./goe.`date +%s` ; else echo none; fi"
+	echo SCPing new build:
+	scp goe.linux.arm64 goe@oci1:goe-new
+	echo Copying new build into place:
+	ssh -t goe@oci1 "mv -f ./goe ./goe.last; mv ./goe-new ./goe && chcon unconfined_u:object_r:bin_t:s0 ./goe && sudo /bin/systemctl restart goe.service"
 
 install: goe
 	sudo install ./goe /usr/local/bin/goe
