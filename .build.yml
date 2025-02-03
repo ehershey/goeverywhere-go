@@ -33,6 +33,7 @@ tasks:
         make test
     - deploy: |
         cd ${reponame}
+        echo "oci1.ernie.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINXhE+UGv/9zkSYveyh24N6r5hszcPK/AvPaPpC/zvkp" >> ~/.ssh/known_hosts
         make deploy
 triggers:
   - action: email
