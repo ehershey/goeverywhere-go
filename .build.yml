@@ -6,6 +6,8 @@ environment:
   reponame: goeverywhere-go
 sources:
     - https://git.sr.ht/~ernie/goeverywhere-go
+secrets:
+    - 4314bd95-b962-45f7-99dc-9f985bd921c6
 tasks:
     - setup-mongo: |
         sudo dnf install -y 'dnf5-command(config-manager)'
