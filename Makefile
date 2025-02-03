@@ -17,9 +17,7 @@ PROTO_GEN_PATH = ./proto/
 PROTO_FILES = $(wildcard $(PROTO_PATH)*.proto)
 
 GEN_FILES = $(patsubst $(PROTO_PATH)%.proto,$(PROTO_GEN_PATH)%.pb.go,$(PROTO_FILES))
-#GEN_FILES = proto/stats.pb.go proto/polylines.pb.go proto/points.pb.go proto/bookmarks.pb.go proto/save_position.pb.go proto/nodes.pb.go proto/goe_service.pb.go proto/protoconnect/goe_service.connect.go
 GEN_PRETAG_FILES = $(patsubst $(PROTO_PATH)%.proto,$(PROTO_PRETAG_PATH)%.pb.go,$(PROTO_FILES))
-#GEN_PRETAG_FILES = proto_pretag/stats.pb.go proto_pretag/polylines.pb.go proto_pretag/points.pb.go proto_pretag/bookmarks.pb.go proto_pretag/save_position.pb.go proto_pretag/nodes.pb.go proto_pretag/goe_service.pb.go
 
 LDFLAGS = -X \"main.BuildTime=$(BUILD_TIME)\"
 LDFLAGS += -X \"main.CommitHash=$(COMMIT_HASH)\"
@@ -57,11 +55,11 @@ deploy: goe.linux.arm64 goe
 	echo latest version:
 	./goe --version
 	echo Checking deployed version and backing up if present:
-	ssh goe@oci1 "if test -e ./goe ; then ./goe --version ; cp -pr ./goe ./goe.`date +%s` ; else echo none; fi"
+	ssh goe@oci1.ernie.org "if test -e ./goe ; then ./goe --version ; cp -pr ./goe ./goe.`date +%s` ; else echo none; fi"
 	echo SCPing new build:
-	scp goe.linux.arm64 goe@oci1:goe-new
+	scp goe.linux.arm64 goe@oci1.ernie.org:goe-new
 	echo Copying new build into place:
-	ssh -t goe@oci1 "mv -f ./goe ./goe.last; mv ./goe-new ./goe && chcon unconfined_u:object_r:bin_t:s0 ./goe && sudo /bin/systemctl restart goe.service"
+	ssh -t goe@oci1.ernie.org "mv -f ./goe ./goe.last; mv ./goe-new ./goe && chcon unconfined_u:object_r:bin_t:s0 ./goe && sudo /bin/systemctl restart goe.service"
 
 install: goe
 	sudo install ./goe /usr/local/bin/goe
@@ -73,7 +71,6 @@ gen: $(GEN_FILES)
 
 $(GEN_FILES) &: $(GEN_PRETAG_FILES) $(GOPATH)/bin/protoc-gen-connect-go $(GOPATH)/bin/protoc-gen-gotag
 	cp -pr $(GEN_PRETAG_FILES) ./proto/
-	# protoc -I$(wildcard $(GOPATH)/pkg/mod/github.com/srikrsna/protoc-gen-gotag*) --gotag_out=outdir=./proto:. --gotag_opt=paths=source_relative --connect-go_out=./proto --connect-go_opt=paths=source_relative $(PROTO_FILES) --proto_path $(PROTO_PATH)
 	protoc --plugin=../protoc-gen-gotag/protoc-gen-gotag -I$(wildcard $(GOPATH)/pkg/mod/github.com/srikrsna/protoc-gen-gotag*) --gotag_out=outdir=./proto:. --gotag_opt=paths=source_relative --connect-go_out=./proto --connect-go_opt=paths=source_relative $(PROTO_FILES) --proto_path $(PROTO_PATH)
 
 $(GOPATH)/bin/protoc-gen-connect-go:
@@ -89,7 +86,7 @@ $(GOPATH)/bin/protoc-gen-gotag:
 	brew install protoc-gen-go-grpc
 
 clean:
-	rm goe
+	rm goe goe.linux.arm64
 
 showvars:
 	$(foreach v, $(.VARIABLES), $(info $(v) = $($(v))))
