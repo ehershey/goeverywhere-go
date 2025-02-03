@@ -28,7 +28,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 419
+const autoupdate_version = 423
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_SECS = 10
 const WRITE_TIMEOUT_SECS = 10
@@ -285,9 +285,8 @@ func (s *gOEServiceServer) GetPoints(
 	}()
 
 	log.Printf("GetPoints starting streaming results\n")
-	streamed := 0
+	point_count := 0
 	for point, err := range getPoints(ctx, req.Msg) {
-		streamed++
 
 		if err != nil {
 			wrappedErr := fmt.Errorf("Error from getPoints: %w", err)
@@ -295,14 +294,15 @@ func (s *gOEServiceServer) GetPoints(
 			continue
 		}
 		if err := stream.Send(point); err != nil {
-			wrappedErr := fmt.Errorf("Error sending res to stream after %d items: %w", streamed, err)
+			wrappedErr := fmt.Errorf("Error sending res to stream after %d items: %w", point_count, err)
 			log.Printf("Got an error: %v\n", wrappedErr)
 			return wrappedErr
 		}
+		point_count++
 		// to test streaming
 		//time.Sleep(200 * time.Millisecond)
 	}
-	log.Println("GetPoints finished streaming results")
+	log.Printf("GetPoints finished streaming %d results\n", point_count)
 	return nil
 }
 
@@ -329,6 +329,7 @@ func (s *gOEServiceServer) GetBookmarks(
 	stream *connect.ServerStream[proto.GetBookmarksResponse]) error {
 	log.Println("GetBookmarks request headers: ", req.Header())
 
+	bookmark_count := 0
 	for bookmark, err := range getBookmarks(ctx, req.Msg) {
 
 		if err != nil {
@@ -337,13 +338,14 @@ func (s *gOEServiceServer) GetBookmarks(
 			continue
 		}
 		if err := stream.Send(bookmark); err != nil {
-			wrappedErr := fmt.Errorf("Error sending res to stream: %w", err)
+			wrappedErr := fmt.Errorf("Error sending res to stream after %d items: %w", bookmark_count, err)
 			return wrappedErr
 		}
+		bookmark_count++
 		// to test streaming
 		//time.Sleep(200 * time.Millisecond)
 	}
-	log.Println("GetBookmarks finished streaming results")
+	log.Printf("GetBookmarks finished streaming %d results\n", bookmark_count)
 	return nil
 }
 
@@ -365,16 +367,18 @@ func (s *gOEServiceServer) GetPolylines(
 	stream *connect.ServerStream[proto.GetPolylinesResponse]) error {
 	log.Println("GetPolylines request headers: ", req.Header())
 
+	polyline_count := 0
 	for line := range getPolylines(ctx, req.Msg) {
 
 		if err := stream.Send(line); err != nil {
-			wrappedErr := fmt.Errorf("Error sending res to stream: %w", err)
+			wrappedErr := fmt.Errorf("Error sending res to stream after %d items: %w", polyline_count, err)
 			return wrappedErr
 		}
+		polyline_count++
 		// to test streaming
 		//time.Sleep(200 * time.Millisecond)
 	}
-	log.Println("GetPolylines finished streaming results")
+	log.Printf("GetPolylines finished streaming %d results\n", polyline_count)
 	return nil
 }
 

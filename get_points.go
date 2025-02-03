@@ -19,6 +19,14 @@ import (
 
 const points_collection_name = "gps_log"
 
+// # minimum time span in milliseconds between points for new point to be included
+const MINIMUM_POINT_DELTA_MILLIS = 5000
+
+// # minimum distance in meters between points new point to be included
+const MINIMUM_POINT_DELTA_METERS = 40
+
+const QUERY_DEFAULT_LIMIT = 20000
+
 func getPointsCollection() (*mongo.Client, *mongo.Collection, error) {
 	return getCollectionByName(points_collection_name)
 }
