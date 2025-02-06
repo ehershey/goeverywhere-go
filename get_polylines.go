@@ -35,7 +35,8 @@ func getPolylines(ctx context.Context, req *proto.GetPolylinesRequest) iter.Seq[
 			panic(err)
 		}
 		filter := bson.D{}
-		opts := options.Find().SetLimit(default_polyline_limit)
+		sort := bson.M{"_id": -1}
+		opts := options.Find().SetLimit(default_polyline_limit).SetSort(sort)
 		cursor, err := coll.Find(ctx, filter, opts)
 		if err != nil {
 			panic(err)
