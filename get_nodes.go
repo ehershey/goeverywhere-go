@@ -223,6 +223,8 @@ func getTotalCount() (int64, error) {
 }
 
 func getNodes(roptions GetNodesOptions) ([]Node, error) {
+	log.Printf("start getNodes(%v)\n", roptions)
+	defer func() { log.Printf("end getNodes(%v)\n", roptions) }()
 	ctx, cancel := context.WithTimeout(context.Background(), default_timeout_seconds*time.Second)
 	defer cancel()
 
@@ -335,7 +337,7 @@ func getNodes(roptions GetNodesOptions) ([]Node, error) {
 	find_opts.SetLimit(int64(roptions.Limit))
 
 	var nodes []Node
-
+	log.Printf("roptions.Limit: %v\n", roptions.Limit)
 	cursor, err := collection.Find(ctx, query, find_opts)
 	if err != nil {
 		log.Println("got an error:", err)
@@ -345,6 +347,6 @@ func getNodes(roptions GetNodesOptions) ([]Node, error) {
 	if err = cursor.All(ctx, &nodes); err != nil {
 		return nil, err
 	}
-
+	log.Printf("Returning %v nodes in getNodes(%v)\n", len(nodes), roptions)
 	return nodes, nil
 }
