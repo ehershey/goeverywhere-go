@@ -28,7 +28,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const autoupdate_version = 424
+const autoupdate_version = 426
 
 const GRACEFUL_SHUTDOWN_TIMEOUT_SECS = 10
 const WRITE_TIMEOUT_SECS = 10
