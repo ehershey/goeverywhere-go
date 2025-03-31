@@ -1,6 +1,7 @@
 module ernie.org/goe
 
 go 1.23.2
+toolchain go1.24.1
 
 require (
 	connectrpc.com/connect v1.18.1
@@ -19,7 +20,7 @@ require (
 	github.com/twpayne/go-polyline v1.1.1
 	go.mongodb.org/mongo-driver v1.17.3
 	go.mongodb.org/mongo-driver/v2 v2.1.0
-	golang.org/x/net v0.37.0
+	golang.org/x/net v0.38.0
 	google.golang.org/genproto v0.0.0-20250313205543-e70fdf4c4cb4
 	google.golang.org/protobuf v1.36.5
 )
