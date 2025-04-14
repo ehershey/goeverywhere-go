@@ -7,7 +7,7 @@ require (
 	git.sr.ht/~ernie/livetrackreceiver v0.1.6
 	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/davecgh/go-spew v1.1.1
-	github.com/getsentry/sentry-go v0.31.1
+	github.com/getsentry/sentry-go v0.32.0
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/schema v1.4.1
 	github.com/kellydunn/golang-geo v0.7.0
